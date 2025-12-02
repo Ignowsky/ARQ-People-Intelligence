@@ -1,4 +1,4 @@
-# Pipeline ETL - FOPAG & API Sólides
+# Pipeline ETL - ARQ - People Intelligence
 
 # Introduction
 Este projeto é uma solução de Engenharia de Dados desenvolvida para centralizar e automatizar o processamento de dados de Recursos Humanos e Folha de Pagamento. O objetivo principal é eliminar a fragmentação de dados ao integrar duas fontes distintas:
