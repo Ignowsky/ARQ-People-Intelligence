@@ -1,4 +1,27 @@
-/venv
-/.venv
-* pdf
-* csv
+# --- Ambientes Virtuais (Virtual Environments) ---
+venv/
+.venv/
+env/
+
+# --- Python & Compilação ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Variáveis de Ambiente e Segredos (CRÍTICO) ---
+.env
+cofre/
+
+# --- Dados e Arquivos de Entrada/Saída ---
+input/
+Output/
+output/
+*.csv
+*.pdf
+*.xlsx
+*.xls
+
+# --- Arquivos do Sistema Operacional e IDEs (Recomendado) ---
+.DS_Store
+.vscode/
+.idea/
