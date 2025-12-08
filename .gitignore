@@ -13,6 +13,7 @@ __pycache__/
 cofre/
 
 # --- Dados e Arquivos de Entrada/Saída ---
+Main/
 input/
 Output/
 output/
