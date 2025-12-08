@@ -28,7 +28,63 @@ O projeto segue uma arquitetura modular baseada em **Separation of Concerns (SoC
 ├── renomear_arquivo.py    # Utilitário para padronização de nomenclatura de arquivos.
 └── .env                   # Variáveis de ambiente (Credenciais).
 ```
----
+
+```mermaid
+graph LR
+    %% Definição de Estilos
+    classDef storage fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef file fill:#fff9c4,stroke:#fbc02d,stroke-width:2px;
+    classDef python fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+    classDef bi fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
+    classDef api fill:#ffe0b2,stroke:#e65100,stroke-width:2px;
+
+    subgraph "Camada 1: Ingestão (Extract)"
+        A[/"📂 input/*.pdf"/]:::file
+        B(("☁️ Solides API")):::api
+    end
+
+    subgraph "Camada 2: Processamento Modular (Python)"
+        Orchestrator{{"🐍 main.py (Orquestrador)"}}:::python
+        
+        %% Fluxo PDF
+        A -->|Lê| Extract[["src/extract.py"]]:::python
+        Extract -->|Dados Brutos| Transf[["src/transform.py"]]:::python
+        
+        %% Fluxo API
+        B -->|Request| Extract
+        
+        %% Saída Transiente
+        Transf -->|Gera Staging| C("📄 output/*.csv"):::file
+        
+        %% Carga
+        Transf -->|DataFrames Limpos| Load[["src/load.py"]]:::python
+        C -.->|Backup/Debug| Load
+    end
+
+    subgraph "Camada 3: Armazenamento (PostgreSQL DW)"
+        Load -->|Upsert/Insert| DB[(PostgreSQL)]:::storage
+        
+        %% Tabelas
+        DB --> T1[dim_colaboradores]:::storage
+        DB --> T2[dim_calendario]:::storage
+        DB --> T3[fato_folha_consolidada]:::storage
+        DB --> T4[fato_folha_detalhada]:::storage
+        DB --> T5[fato_beneficios_api]:::storage
+    end
+
+    subgraph "Camada 4: Analytics (Power BI)"
+        T1 & T2 & T3 & T4 & T5 -->|Import Mode| PBI[Power Query]:::bi
+        PBI --> Model{Modelagem Star Schema}:::bi
+        Model --> Dash[📊 Dashboard People Analytics]:::bi
+
+    %% Conexões do Orquestrador
+    Orchestrator -.-> Extract
+    Orchestrator -.-> Transf
+    Orchestrator -.-> Load
+    end
+```
+----
+
 # 🚀 Detalhamento Técnico dos Módulos
 
 ## 1. Extração (```src/extract.py```)
