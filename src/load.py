@@ -77,7 +77,7 @@ def carregar_fatos_folha(df_consol, df_detalhe, engine, schema):
     Carrega as tabelas fato_folha_consolidada e fato_folha_detalhada.
     """
 
-    # --- Parte A: Popular/Atualizar Dimensão Base com dados do CSV ---
+    # --- Parte A: Popular/Atualizar Dimensão Base ---
     if not df_consol.empty:
         cols_base = ['cpf', 'nome_funcionario', 'data_admissao', 'data_demissao', 'situacao', 'departamento', 'cargo']
         df_base_load = df_consol[cols_base].copy().rename(columns={
@@ -89,8 +89,7 @@ def carregar_fatos_folha(df_consol, df_detalhe, engine, schema):
             'cargo': 'cargo_csv'
         })
 
-        # Staging
-        # O Pandas agora manda None real (NULL), então o SQL pode ser direto
+        # Staging: O Pandas agora manda None (NULL) real, então o SQL não precisa de CAST
         df_base_load.to_sql("stg_base_csv_temp", engine, schema=schema, if_exists='replace', index=False)
 
         sql_base = f"""
@@ -111,7 +110,7 @@ def carregar_fatos_folha(df_consol, df_detalhe, engine, schema):
         )
         SELECT DISTINCT ON (cpf)
             nome_colaborador, cpf,
-            data_admissao_csv, 
+            data_admissao_csv,  -- Inserção direta (Python já tratou)
             data_demissao_csv, 
             situacao_csv, departamento_csv, cargo_csv
         FROM "{schema}"."stg_base_csv_temp"
@@ -136,7 +135,6 @@ def carregar_fatos_folha(df_consol, df_detalhe, engine, schema):
     if not df_consol.empty:
         comps_consol = tuple(df_consol['competencia'].dropna().unique())
         if comps_consol:
-            # dtype=SCHEMA_TOTAIS agora é seguro porque o Python limpou as datas
             df_consol.to_sql("stg_folha_consol", engine, schema=schema, if_exists='replace', index=False,
                              dtype=SCHEMA_TOTAIS)
 

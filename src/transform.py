@@ -19,15 +19,16 @@ def converter_para_decimal(val):
 
 def parse_date_seguro(val):
     """
-    Tenta converter qualquer coisa para data. Se falhar, retorna None.
-    Isso impede que strings vazias ou formatos loucos cheguem no banco.
+    Tenta converter qualquer coisa para data (Date Object).
+    Se falhar, retornar None.
+    Isso impede que strings vazias cheguem no banco e causem erro.
     """
     if pd.isna(val) or val is None or str(val).strip() == '' or str(val).lower() == 'nan':
         return None
 
     val_str = str(val).strip()
 
-    # Lista de formatos para tentar (Prioridade para dia/mês/ano)
+    # Lista de formatos possíveis
     formatos = [
         '%d/%m/%Y',  # 01/01/2023
         '%Y-%m-%d',  # 2023-01-01
@@ -61,50 +62,46 @@ def transformar_dados_pdf(df_consol, df_detalhe):
     ]
     colunas_monetarias_detalhe = ['valor_rubrica']
 
-    # ---------------------------------------------------------
-    # 1. Tratamento do DataFrame CONSOLIDADO (Totais)
-    # ---------------------------------------------------------
+    # --- 1. CONSOLIDADO ---
     if not df_consol.empty:
-        # Tratamento de Datas Específicas
+        # Tratamento de Datas (Usa o parser seguro)
         for col in ['data_admissao', 'data_demissao', 'competencia']:
             if col in df_consol.columns:
                 df_consol[col] = df_consol[col].apply(parse_date_seguro)
 
-        # Tratamento Monetário (Decimal)
+        # Tratamento Monetário
         for col in colunas_monetarias_consol:
             if col in df_consol.columns:
                 df_consol[col] = df_consol[col].apply(converter_para_decimal)
 
-        # Tratamento de CPF (Remove tudo que não é dígito)
+        # CPF
         if 'cpf' in df_consol.columns:
             df_consol['cpf'] = df_consol['cpf'].astype(str).str.replace(r'[^\d]', '', regex=True)
             df_consol['cpf'] = df_consol['cpf'].replace(['', 'None', 'nan', 'NaT'], None)
 
-        # Tratamento de Texto Geral
+        # Texto Geral
         cols_ignoradas = ['competencia', 'data_admissao', 'data_demissao', 'cpf'] + colunas_monetarias_consol
         cols_texto = [c for c in df_consol.columns if c not in cols_ignoradas]
         for col in cols_texto:
             df_consol[col] = clean_text_series(df_consol[col])
 
-    # ---------------------------------------------------------
-    # 2. Tratamento do DataFrame DETALHADO (Rubricas)
-    # ---------------------------------------------------------
+    # --- 2. DETALHADO ---
     if not df_detalhe.empty:
-        # Tratamento da Competência
+        # Competência
         if 'competencia' in df_detalhe.columns:
             df_detalhe['competencia'] = df_detalhe['competencia'].apply(parse_date_seguro)
 
-        # Tratamento Monetário
+        # Monetário
         for col in colunas_monetarias_detalhe:
             if col in df_detalhe.columns:
                 df_detalhe[col] = df_detalhe[col].apply(converter_para_decimal)
 
-        # Tratamento de CPF
+        # CPF
         if 'cpf' in df_detalhe.columns:
             df_detalhe['cpf'] = df_detalhe['cpf'].astype(str).str.replace(r'[^\d]', '', regex=True)
             df_detalhe['cpf'] = df_detalhe['cpf'].replace(['', 'None', 'nan'], None)
 
-        # Tratamento de Texto
+        # Texto
         cols_ignoradas_det = ['competencia', 'cpf'] + colunas_monetarias_detalhe
         cols_texto_det = [c for c in df_detalhe.columns if c not in cols_ignoradas_det]
         for col in cols_texto_det:
@@ -124,12 +121,12 @@ def transformar_dados_api(lista_dicts_api):
     # O json_normalize faz o trabalho pesado de 'achatar' objetos aninhados
     df = pd.json_normalize(lista_dicts_api)
 
-    # Função auxiliar para limpar CPF/CNPJ/CEP (apenas números)
+    # Função auxiliar para limpar CPF apenas números
     def clean_digits(val):
         if pd.isna(val) or val is None: return None
         return ''.join(filter(str.isdigit, str(val)))
 
-    # --- 1. Mapeamento de Colunas (JSON -> Staging) ---
+    # Mapeamento Completo (JSON -> Staging)
     rename_map = {
         'id': 'colaborador_id_solides',
         'name': 'nome_completo',
@@ -205,28 +202,27 @@ def transformar_dados_api(lista_dicts_api):
         'documents.checkingsAccount': 'banco_conta'
     }
 
-    # Renomeia o que existe
     df = df.rename(columns=rename_map)
 
-    # --- 2. Tratamento de Tipos ---
+    # --- Limpeza de Tipos ---
 
-    # Limpeza de CPF
+    # CPF
     if 'cpf' in df.columns:
         df['cpf'] = df['cpf'].apply(clean_digits)
     else:
-        # Fallback se documents.idNumber falhar
+        # Fallback simples se não achar no documents.idNumber
         cols_cpf = ['documents.cpf', 'idNumber']
         for c in cols_cpf:
             if c in lista_dicts_api[0]:
                 pass
         df['cpf'] = None
 
-        # Limpeza de Moeda
+        # Moeda
     for col in ['salario_api', 'valor_rescisao', 'total_beneficios_api']:
         if col in df.columns:
             df[col] = df[col].apply(limpar_valor_moeda)
 
-    # Limpeza de Datas (Usando o parser seguro agora também na API)
+    # Datas (Agora usando o parse seguro)
     date_cols = [
         'data_nascimento', 'data_admissao', 'data_demissao', 'data_contrato',
         'data_expiracao_contrato', 'data_emissao_rg', 'data_ultima_atualizacao_api'
@@ -235,11 +231,11 @@ def transformar_dados_api(lista_dicts_api):
         if col in df.columns:
             df[col] = df[col].apply(parse_date_seguro)
 
-    # Limpeza de Booleanos
+    # Booleanos
     if 'pcd' in df.columns: df['pcd'] = df['pcd'].astype('boolean')
     if 'ativo' in df.columns: df['ativo'] = df['ativo'].astype('boolean')
 
-    # --- 3. Garantia de Colunas (Schema) ---
+    # --- Schema Final ---
     colunas_finais = [
         'colaborador_id_solides', 'cpf', 'nome_completo', 'matricula', 'email_corporativo',
         'data_nascimento', 'genero', 'estado_civil', 'saudacao', 'nacionalidade',
@@ -265,14 +261,10 @@ def transformar_dados_api(lista_dicts_api):
 
 
 def transformar_beneficios_api(lista_dicts_api):
-    """
-    Extrai e transforma a lista de benefícios aninhada.
-    """
     if not lista_dicts_api:
         return pd.DataFrame()
 
     lista_beneficios = []
-
     for colab in lista_dicts_api:
         colab_id = colab.get('id')
         benefits_data = colab.get('benefits', [])
@@ -301,7 +293,5 @@ def transformar_beneficios_api(lista_dicts_api):
 
     df['valor_beneficio'] = df['valor_bruto'].apply(limpar_valor_moeda)
     df['valor_desconto'] = df['valor_desconto_bruto'].apply(limpar_valor_moeda)
-
     df.drop(columns=['valor_bruto', 'valor_desconto_bruto'], inplace=True)
-
     return df

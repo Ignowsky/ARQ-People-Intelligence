@@ -17,11 +17,13 @@ Main/
 input/
 Output/
 output/
+FOPAG/
+Folhas Passadas/
 *.csv
 *.pdf
 *.xlsx
 *.xls
-
+*.json
 # --- Arquivos do Sistema Operacional e IDEs (Recomendado) ---
 .DS_Store
 .vscode/
