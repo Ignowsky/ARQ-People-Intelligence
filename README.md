@@ -35,8 +35,10 @@ O projeto segue uma arquitetura modular baseada em **Separation of Concerns (SoC
 └── .env                   # Variáveis de ambiente (Segurança).
 ```
 ----
-## ⚙️ Fluxo da Arquitetura do Projeto
-![Fluxo de Arquitetura](./assets/Untitled diagram-2025-12-10-134210.png)
+## ⚙️ Fluxo da Arquitetura do Projeto - Diagramado
+
+![Fluxo de Arquitetura](assets/Untitled diagram-2025-12-10-134210.png)
+
 ----
 
 # 🚀 Detalhamento Técnico dos Módulos
