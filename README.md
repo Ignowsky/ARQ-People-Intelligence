@@ -1,11 +1,17 @@
-# ARQ-People Intelligence: Pipeline de Engenharia de Dados de RH
+# 📊 ARQ-People Intelligence: Pipeline de Engenharia de Dados de RH
+
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge&logo=python)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-12%2B-336791?style=for-the-badge&logo=postgresql)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-Red-red?style=for-the-badge)
+![Azure DevOps](https://img.shields.io/badge/Azure%20DevOps-0078D7?style=for-the-badge&logo=azure-devops)
 
 ## 📋 Visão Geral
 Este projeto consiste em um pipeline de **Engenharia de Dados (ETL)** robusto desenvolvido em Python para centralizar, limpar e estruturar dados de Recursos Humanos. O sistema orquestra a ingestão de dados de duas fontes distintas:
-1.  **Arquivos Não-Estruturados (PDF):** Holerites, Recibos de Férias e 13º Salário.
-2.  **API Externa (Sólides):** Dados cadastrais ricos e benefícios.
 
-O objetivo final é alimentar um Data Warehouse (PostgreSQL) modelado em **Star Schema** para análises de *People Analytics*.
+1.  **Arquivos Não-Estruturados (PDF):** Holerites, Recibos de Férias e 13º Salário (OCR/Regex).
+2.  **API Externa (Sólides):** Dados cadastrais ricos e benefícios (REST).
+
+O objetivo final é alimentar um Data Warehouse (PostgreSQL) modelado em **Star Schema** para análises de *People Analytics* (Turnover, Headcount, Custo de Folha, etc.).
 
 ---
 
@@ -15,74 +21,22 @@ O projeto segue uma arquitetura modular baseada em **Separation of Concerns (SoC
 
 ```text
 /
-├── input/                 # [Área de Staging Local] Recebe os PDFs brutos.
-├── output/                # [Área Transiente] Armazena CSVs processados antes da carga.
-├── src/                   # Pacote de código fonte principal
-│   ├── database.py        # Factory de conexão com o Banco de Dados (Singleton pattern).
-│   ├── extract.py         # Lógica de Extração (OCR/Regex para PDF e Requests para API).
-│   ├── transform.py       # Limpeza, Tipagem Forte (Pandas) e Regras de Negócio.
-│   ├── load.py            # Carga no Banco (DDL, DML, Upserts e Tratamento de Erros).
-│   ├── utils.py           # Funções auxiliares (Sanitização de texto e moeda).
-│   └── constants.py       # Mapeamento estático de Rubricas e Schemas.
-├── main.py                # Orquestrador do Pipeline (Entry Point).
-├── renomear_arquivo.py    # Utilitário para padronização de nomenclatura de arquivos.
-└── .env                   # Variáveis de ambiente (Credenciais).
+├── input/                 # [Staging] Área de entrada dos PDFs brutos.
+├── output/                # [Transient] Área de CSVs processados para auditoria/debug.
+├── src/                   # Núcleo da Engenharia
+│   ├── database.py        # Factory de conexão (Singleton pattern).
+│   ├── extract.py         # Ingestão (OCR via pdfplumber + Requests API).
+│   ├── transform.py       # Limpeza, Tipagem (Pandas) e Regras de Negócio.
+│   ├── load.py            # Persistência (Upserts, DDL e Tratamento de Erros).
+│   ├── utils.py           # Sanitização (Texto e Moeda).
+│   └── constants.py       # Metadados e Dicionário de Rubricas.
+├── main.py                # Orquestrador (Entry Point).
+├── renomear_arquivo.py    # Utilitário de padronização de arquivos.
+└── .env                   # Variáveis de ambiente (Segurança).
 ```
-
-```mermaid
-graph LR
-    %% Definição de Estilos
-    classDef storage fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
-    classDef file fill:#fff9c4,stroke:#fbc02d,stroke-width:2px;
-    classDef python fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
-    classDef bi fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
-    classDef api fill:#ffe0b2,stroke:#e65100,stroke-width:2px;
-
-    subgraph "Camada 1: Ingestão (Extract)"
-        A[/"📂 input/*.pdf"/]:::file
-        B(("☁️ Solides API")):::api
-    end
-
-    subgraph "Camada 2: Processamento Modular (Python)"
-        Orchestrator{{"🐍 main.py (Orquestrador)"}}:::python
-        
-        %% Fluxo PDF
-        A -->|Lê| Extract[["src/extract.py"]]:::python
-        Extract -->|Dados Brutos| Transf[["src/transform.py"]]:::python
-        
-        %% Fluxo API
-        B -->|Request| Extract
-        
-        %% Saída Transiente
-        Transf -->|Gera Staging| C("📄 output/*.csv"):::file
-        
-        %% Carga
-        Transf -->|DataFrames Limpos| Load[["src/load.py"]]:::python
-        C -.->|Backup/Debug| Load
-    end
-
-    subgraph "Camada 3: Armazenamento (PostgreSQL DW)"
-        Load -->|Upsert/Insert| DB[(PostgreSQL)]:::storage
-        
-        %% Tabelas
-        DB --> T1[dim_colaboradores]:::storage
-        DB --> T2[dim_calendario]:::storage
-        DB --> T3[fato_folha_consolidada]:::storage
-        DB --> T4[fato_folha_detalhada]:::storage
-        DB --> T5[fato_beneficios_api]:::storage
-    end
-
-    subgraph "Camada 4: Analytics (Power BI)"
-        T1 & T2 & T3 & T4 & T5 -->|Import Mode| PBI[Power Query]:::bi
-        PBI --> Model{Modelagem Star Schema}:::bi
-        Model --> Dash[📊 Dashboard People Analytics]:::bi
-
-    %% Conexões do Orquestrador
-    Orchestrator -.-> Extract
-    Orchestrator -.-> Transf
-    Orchestrator -.-> Load
-    end
-```
+----
+## ⚙️ Fluxo da Arquitetura do Projeto
+![Fluxo de Arquitetura](./assets/mermaid-diagram-2025-12-10-085352.png)
 ----
 
 # 🚀 Detalhamento Técnico dos Módulos
@@ -115,6 +69,11 @@ Utiliza SQLAlchemy e SQL puro para máxima performance e controle.
 
 **Segurança de Tipos**: Implementa funções ``safe_cast`` no SQL (``CAST(NULLIF(..., '') AS NUMERIC``)) para blindar o banco contra strings vazias ou caracteres sujos vindos da fonte.
 
+
+### 4. Utilitários (`src/utils.py`)
+Módulo transversal de funções auxiliares (Helpers) reutilizáveis:
+* **Limpeza de Texto (`clean_text_series`):** Higienização "pesada" de strings. Remove quebras de linha (`\n`), tabulações (`\t`), caracteres invisíveis de PDF (`\xa0`) e normaliza espaços múltiplos.
+* **Normalização Monetária (`limpar_valor_moeda`):** Resolve o problema de localização (Locale PT-BR). Transforma formatos complexos como `R$ 1.500,50` ou `1.000,00` em decimais limpos (`1500.50`) prontos para cálculo matemático e inserção no banco.
 ---
 
 # 🔒 Política de Segurança e Retenção de Dados
@@ -155,3 +114,4 @@ Este pipeline lida com Dados Pessoais Sensíveis (LGPD). As seguintes regras sã
    ```bash
    python main.py
    ```
+5. **Verificação:** Acompanhe os logs no terminal. No final, verifique as tabelas `fato_folha_consolidada` e `dim_colaboradores`
