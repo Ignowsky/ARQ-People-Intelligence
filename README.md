@@ -36,7 +36,7 @@ O projeto segue uma arquitetura modular baseada em **Separation of Concerns (SoC
 ```
 ----
 ## ⚙️ Fluxo da Arquitetura do Projeto
-![Fluxo de Arquitetura](./assets/mermaid-diagram-2025-12-10-085352.png)
+![Fluxo de Arquitetura](./assets/Untitled diagram-2025-12-10-134210.png)
 ----
 
 # 🚀 Detalhamento Técnico dos Módulos
