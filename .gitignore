@@ -2,7 +2,7 @@
 venv/
 .venv/
 env/
-
+.env/
 # --- Python & Compilação ---
 __pycache__/
 *.py[cod]
@@ -11,7 +11,7 @@ __pycache__/
 # --- Variáveis de Ambiente e Segredos (CRÍTICO) ---
 .env
 cofre/
-
+*.env
 # --- Dados e Arquivos de Entrada/Saída ---
 Main/
 input/

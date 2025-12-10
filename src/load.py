@@ -335,7 +335,7 @@ def carregar_dados_api(df_staging, df_beneficios, engine, schema):
         INSERT INTO "{schema}".{NOME_TABELA_RICA} (colaborador_sk, colaborador_id_solides)
         VALUES (0, -1) ON CONFLICT (colaborador_sk) DO NOTHING;
 
-        -- UPSERT MASSIVO
+        -- UPSERT MASSIVO completo
         INSERT INTO "{schema}".{NOME_TABELA_RICA} (
             colaborador_sk, colaborador_id_solides, cpf, nome_completo, data_nascimento, genero,
             nacionalidade, escolaridade, nome_mae, nome_pai, estado_civil, etnia,
