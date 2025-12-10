@@ -37,8 +37,53 @@ O projeto segue uma arquitetura modular baseada em **Separation of Concerns (SoC
 ----
 ## ⚙️ Fluxo da Arquitetura do Projeto - Diagramado
 
-![Fluxo de Arquitetura](assets/Untitled diagram-2025-12-10-134210.png)
 
+``` mermaid
+---
+config:
+  layout: fixed
+---
+graph LR
+    %% --- Definição das Fontes ---
+    subgraph Sources ["1. Fontes de Dados"]
+        PDF["📂 input/<br/>PDFs Brutos"]
+        API["☁️ API Sólides<br/>JSON"]
+    end
+
+    %% --- Núcleo do Pipeline ---
+    subgraph Core ["2. Pipeline Python (src/)"]
+        direction TB
+        EXT["extract.py<br/>(OCR/Regex & Requests)"]
+        TRANS["transform.py<br/>(Limpeza & Tipagem)"]
+        UTILS("utils.py<br/>Helpers de Sanitização")
+        LOAD["load.py<br/>(Upsert & Transaction)"]
+    end
+
+    %% --- Destino ---
+    subgraph Storage ["3. Armazenamento"]
+        DB[("🗄️ PostgreSQL<br/>Schema FOPAG")]
+    end
+
+    BI["📈 Power BI<br/>People Analytics"]
+
+    %% --- Relacionamentos ---
+    PDF -->|Leitura| EXT
+    API -->|Paginação| EXT
+    
+    EXT -->|Dados Brutos| TRANS
+    TRANS -.->|Usa| UTILS
+    UTILS -.->|Retorna Limpo| TRANS
+    
+    TRANS -->|DataFrames| LOAD
+    LOAD -->|Commit| DB
+    
+    DB -->|SQL| BI
+
+    %% --- Estilização ---
+    style DB fill:#336791,stroke:#fff,stroke-width:2px,color:#fff
+    style API fill:#0078D7,stroke:#fff,stroke-width:2px,color:#fff
+    style UTILS stroke-dasharray: 5 5,fill:#f9f2f4,stroke:#c7254e,color:#c7254e
+```
 ----
 
 # 🚀 Detalhamento Técnico dos Módulos
@@ -48,7 +93,7 @@ O projeto segue uma arquitetura modular baseada em **Separation of Concerns (SoC
 
 - **PDFs** : Utiliza a biblioteca ```pdfplumber``` para extração de texto bruto. **Aplica Expressões Regulares (Regex)** complexas para identificar padrões de layout variáveis (Holerite Mensal vs. Recibo de Férias).
 
-  - Estratégia de Fallback: O extrator possui múltiplas camadas de regex. Se não encontrar o padrão "Competência: MM/AAAA", busca por "Data de Pagamento" ou "Período de Gozo".
+- **Estratégia de Fallback**: O extrator possui múltiplas camadas de regex. Se não encontrar o padrão "Competência: MM/AAAA", busca por "Data de Pagamento" ou "Período de Gozo".
 - **API**: Implementa paginação automática (```while loop```) para iterar sobre todos os endpoints da API da Solides, garantindo a extração completa da base de colaboradores.
 
 ## 2. Transformação (```src/transform.py```)
