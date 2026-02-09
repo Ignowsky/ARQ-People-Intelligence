@@ -54,14 +54,16 @@ MAPEAMENTO_ORIGINAL = {
     '8918': 'D_8918_Adiantamento_13_Media_Valor', '8919': 'D_8919_Adiantamento_13_Media_Horas', '8921': 'D_8921_Adiantamento_13_Media_Fixa',
     '9750': 'D_9750_Desc_Emprestimo_Consignado', '8214': 'D_8214_INSS_Dif_13_Salario', '8215': 'D_8215_IRRF_Dif_13_Salario',
     '8517': 'D_8517_Liquido_Rescisao_Estagiario', '8566': 'D_8566_Adiantamento_13_Salario_Rescisao', '1043': 'D_Desconto_Vale_Transporte',
-    '474': 'P_474_Trienio_SINDPD', '831': 'P_831_Multa_Estabilidade_Art._479/CLT', '386': 'D_386_Faltas_Atraso_Valor', 
+    '474': 'P_474_Trienio_SINDPD', '831': 'P_831_Multa_Estabilidade_Art._479/CLT', '386': 'D_386_Faltas_Atraso_Valor',
     '364': 'D_364_Horas_Faltas_Parcial', '402': 'P_402_Pag_Saldo_Banco_Horas', '8154': 'P_8154_Media_13_1/12_Indenizado', '8146': 'P_8146_Media_Fixa_Aviso/Previo',
     '990': 'P_990_Insuf_Saldo_Credor', '8794': 'D_8794_Faltas_Dias_DSR', '8792': 'D_8792_Faltas_Dias', '818': 'P_818_Media_HR_Ferias_Vencidas', '819': 'P_819_Media_VL_Ferias_Vencidas',
     '8144': 'P_8144_Media_Valor_Aviso_Previo', '8145': 'P_8145_Media_Horas_Aviso_Previo', '991': 'D_991_Insuficiencia_Saldo', '686': 'P_686_Bonus', '8932': 'P_8932_Dias_Ausencias_Justificada',
     '643': 'P_643_VA_Retroativo_CCT', '730': 'P_730_Abono_CCT', '8869': 'P_8869_Dias_Afast_P/Acid_Trabalho_C/D', '294': 'P_294_Auxilio_Educacao', '293': 'P_293_Dev_Desconto_VT',
     '1076': 'D_1076_Desc_Emprestimo_Consignado', '1078': 'D_1078_Desc_Emprestimo_Consignado', '9754': 'P_9754_Estorno_Desc_Prov_Emprestimo_Consignado',
-    '9751': 'D_9751_Desc_Emprestimo_Consginado', '9752': 'D_9752_Provisao_Desc._Emprestimo_Consignado', '557': 'P_557_VT_Mes_Atual'
-    
+    '9751': 'D_9751_Desc_Emprestimo_Consginado', '9752': 'D_9752_Provisao_Desc_Emprestimo_Consignado', '557': 'P_557_VT_Mes_Atual',
+    '1080':  'D_1080_Desc_Emprestimo_Consignado', '1077': 'D_1077_Desc_Emprestimo_Consignado', '401': 'P_401_DSR_Saldo_Banco_Horas', '1108': 'D_1108_Desconto_Cursos',
+    '1082': 'D_1082_Desc_Emprestimo_Consignado', '342': 'D_342_Desc_Plano_Medico_Ret', '299': 'P_299_Saldo_Salario', '361': 'D_361_Adiantamento_Salarial',
+    '1055': 'P_1055_Premio'
 }
 proventos_map = {k: v for k, v in MAPEAMENTO_ORIGINAL.items() if v.startswith('P_')}
 descontos_map = {k: v for k, v in MAPEAMENTO_ORIGINAL.items() if v.startswith('D_')}

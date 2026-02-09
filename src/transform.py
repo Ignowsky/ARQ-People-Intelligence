@@ -144,6 +144,7 @@ def transformar_dados_api(lista_dicts_api):
         'disabledPerson': 'pcd',
         'dateAdmission': 'data_admissao',
         'dateDismissal': 'data_demissao',
+        'reasonDismissal': 'motivo_demissao', # Adicionado
         'salary': 'salario_api',
         'workShift': 'turno_trabalho',
         'typeContract': 'tipo_contrato',
@@ -168,6 +169,8 @@ def transformar_dados_api(lista_dicts_api):
         'unity.name': 'unidade_nome',
         'unity.id': 'unidade_id_solides',
         'position.name': 'cargo_nome_api',
+        'position.briefDescription': 'descricao_cargo', # Adicionado
+        'position.activities': 'atividades_cargo', # Adicionado
         'position.id': 'cargo_id_solides',
         'departament.name': 'departamento_nome_api',
         'departament.id': 'departamento_id_solides',
@@ -206,16 +209,21 @@ def transformar_dados_api(lista_dicts_api):
 
     # --- Limpeza de Tipos ---
 
+
+
     # CPF
     if 'cpf' in df.columns:
         df['cpf'] = df['cpf'].apply(clean_digits)
     else:
-        # Fallback simples se não achar no documents.idNumber
-        cols_cpf = ['documents.cpf', 'idNumber']
-        for c in cols_cpf:
-            if c in lista_dicts_api[0]:
-                pass
         df['cpf'] = None
+
+    # (Adicione aqui todos os documentos para limpar de uma vez)
+    cols_numericas = ['rg', 'pis', 'cep', 'ctps_numero']
+
+    for col in cols_numericas:
+        if col in df.columns:
+            # Aplica a limpeza (remove pontos, traços, letras)
+            df[col] = df[col].apply(clean_digits)
 
         # Moeda
     for col in ['salario_api', 'valor_rescisao', 'total_beneficios_api']:
@@ -239,14 +247,14 @@ def transformar_dados_api(lista_dicts_api):
     colunas_finais = [
         'colaborador_id_solides', 'cpf', 'nome_completo', 'matricula', 'email_corporativo',
         'data_nascimento', 'genero', 'estado_civil', 'saudacao', 'nacionalidade',
-        'tipo_necessidade_especial', 'naturalidade', 'nome_pai', 'nome_mae', 'pcd',
-        'data_admissao', 'data_demissao', 'salario_api', 'turno_trabalho', 'tipo_contrato',
+        'tipo_necessidade_especial', 'naturalidade', 'nome_pai', 'nome_mae','pcd',
+        'data_admissao', 'data_demissao','motivo_demissao', 'salario_api', 'turno_trabalho', 'tipo_contrato',
         'data_contrato', 'escolaridade', 'curso_formacao', 'nivel_hierarquico',
         'duracao_contrato', 'data_expiracao_contrato', 'periodo_experiencia_dias',
         'forma_demissao', 'decisao_demissao', 'valor_rescisao', 'total_beneficios_api',
         'ativo', 'etnia', 'data_ultima_atualizacao_api',
         'nome_lider_imediato', 'lider_id_solides', 'unidade_nome', 'unidade_id_solides',
-        'cargo_nome_api', 'cargo_id_solides', 'departamento_nome_api', 'departamento_id_solides',
+        'cargo_nome_api', 'descricao_cargo', 'atividades_cargo','cargo_id_solides', 'departamento_nome_api', 'departamento_id_solides',
         'cep', 'logradouro', 'numero_endereco', 'complemento_endereco', 'bairro', 'cidade', 'estado',
         'celular', 'email_pessoal', 'telefone_emergencia',
         'rg', 'data_emissao_rg', 'orgao_emissor_rg', 'titulo_eleitor', 'zona_eleitoral', 'secao_eleitoral',

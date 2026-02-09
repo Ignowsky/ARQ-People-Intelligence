@@ -15,32 +15,30 @@ def clean_text_series(series):
 
 
 def limpar_valor_moeda(valor_str):
-    """
-    Converte string (ex: 'R$ 1.200,50') ou float para float python.
-    RESTAURADA LOGICA DO MONOLITO (Remove R$).
-    """
-    if valor_str is None or pd.isna(valor_str):
-        return None
+        """
+        Converte string ou float para float python.
+        Híbrido: Aceita '2.500,00' (BR) E '2500.00' (US/API).
+        """
+        if valor_str is None or pd.isna(valor_str) or str(valor_str).strip() == '':
+            return None
 
-    if isinstance(valor_str, (int, float)):
-        return float(valor_str)
+        if isinstance(valor_str, (int, float)):
+            return float(valor_str)
 
-    if isinstance(valor_str, str):
+        valor_limpo = str(valor_str).strip()
+        valor_limpo = valor_limpo.replace('R$', '').strip()
+
         try:
-            # Lógica agressiva do script original:
-            # 1. Remove R$
-            valor_limpo = valor_str.replace('R$', '')
-            # 2. Remove espaços em branco (invisíveis ou não)
-            valor_limpo = valor_limpo.strip()
-            # 3. Remove pontos de milhar (1.000 -> 1000)
-            valor_limpo = valor_limpo.replace('.', '')
-            # 4. Troca vírgula decimal por ponto (1000,50 -> 1000.50)
-            valor_limpo = valor_limpo.replace(',', '.')
+            # LÓGICA HÍBRIDA (A CORREÇÃO):
+            # Cenário 1: Formato Brasileiro (tem vírgula decimal) -> Ex: "2.619,76"
+            if ',' in valor_limpo:
+                valor_limpo = valor_limpo.replace('.', '')  # Remove ponto de milhar
+                valor_limpo = valor_limpo.replace(',', '.')  # Troca vírgula por ponto
 
-            if not valor_limpo:
-                return None
+            # Cenário 2: Formato Americano/API (NÃO tem vírgula) -> Ex: "2619.76"
+            # O código antigo removia o ponto aqui, transformando 2619.76 em 261976.
+            # Agora, se não tiver vírgula, nós NÃO tocamos no ponto.
 
             return float(valor_limpo)
         except (ValueError, TypeError):
             return None
-    return None

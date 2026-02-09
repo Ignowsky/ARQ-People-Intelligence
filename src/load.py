@@ -222,7 +222,6 @@ def carregar_dados_api(df_staging, df_beneficios, engine, schema):
 
     # Garante que os DataFrames tenham as colunas esperadas
     df_staging['cpf'] = df_staging['cpf'].astype(str).replace(['nan', 'None'], None)
-    df_beneficios['colaborador_id_solides'] = df_beneficios['colaborador_id_solides'].astype(float).astype('Int64')
 
     # Helper SQL para tratamento numérico seguro
     def to_num(col):
@@ -235,15 +234,16 @@ def carregar_dados_api(df_staging, df_beneficios, engine, schema):
     NOME_FATO_BEN = "fato_beneficios_api"
 
     try:
-        # Carga Staging
+        # 1. Carga Staging
         print(f"Carregando {NOME_TABELA_STAGING}...")
         df_staging.to_sql(NOME_TABELA_STAGING, engine, if_exists='replace', index=False, schema=schema)
 
-        print(f"Carregando {NOME_STAGING_BEN}...")
-        df_beneficios.to_sql(NOME_STAGING_BEN, engine, if_exists='replace', index=False, schema=schema)
+        if not df_beneficios.empty:
+            print(f"Carregando {NOME_STAGING_BEN}...")
+            df_beneficios.to_sql(NOME_STAGING_BEN, engine, if_exists='replace', index=False, schema=schema)
 
         sql = f"""
-        -- 1. Base (Garante existência dos CPFs)
+        -- 2. Base
         CREATE TABLE IF NOT EXISTS "{schema}".{NOME_TABELA_BASE} (
             colaborador_sk SERIAL PRIMARY KEY, nome_colaborador VARCHAR(255), cpf VARCHAR(20) UNIQUE,
             data_admissao_csv DATE, data_demissao_csv DATE, situacao_csv VARCHAR(100),
@@ -252,11 +252,6 @@ def carregar_dados_api(df_staging, df_beneficios, engine, schema):
         INSERT INTO "{schema}".{NOME_TABELA_BASE} (colaborador_sk, nome_colaborador, cpf)
         VALUES (0, 'Desconhecido', 'N/A') ON CONFLICT (colaborador_sk) DO NOTHING;
 
-        ALTER TABLE "{schema}".{NOME_TABELA_BASE}
-            ADD COLUMN IF NOT EXISTS data_admissao_csv DATE, ADD COLUMN IF NOT EXISTS data_demissao_csv DATE,
-            ADD COLUMN IF NOT EXISTS situacao_csv VARCHAR(100), ADD COLUMN IF NOT EXISTS departamento_csv VARCHAR(255),
-            ADD COLUMN IF NOT EXISTS cargo_csv VARCHAR(255);
-
         INSERT INTO "{schema}".{NOME_TABELA_BASE} (nome_colaborador, cpf)
         SELECT DISTINCT ON (stg.cpf) stg.nome_completo, stg.cpf
         FROM "{schema}".{NOME_TABELA_STAGING} AS stg
@@ -264,29 +259,34 @@ def carregar_dados_api(df_staging, df_beneficios, engine, schema):
         ORDER BY stg.cpf, stg.colaborador_id_solides DESC 
         ON CONFLICT (cpf) DO UPDATE SET nome_colaborador = EXCLUDED.nome_colaborador;
 
-        -- 2. Dimensão Rica (Criação se não existir)
+        -- 3. Dimensão Rica
         CREATE TABLE IF NOT EXISTS "{schema}".{NOME_TABELA_RICA} (
             colaborador_sk INTEGER PRIMARY KEY, colaborador_id_solides INTEGER UNIQUE NOT NULL, 
-            cpf VARCHAR(11), nome_completo VARCHAR(255), data_nascimento DATE, genero VARCHAR(50),
-            data_admissao DATE, data_demissao DATE, ativo BOOLEAN,
-            departamento_nome_api VARCHAR(255), cargo_nome_api VARCHAR(255), email VARCHAR(255),
+            cpf VARCHAR(11), nome_completo VARCHAR(255),
             data_ultima_atualizacao TIMESTAMP DEFAULT current_timestamp,
             FOREIGN KEY (colaborador_sk) REFERENCES "{schema}".{NOME_TABELA_BASE}(colaborador_sk)
         );
 
-        ALTER TABLE "{schema}".{NOME_TABELA_RICA} DROP COLUMN IF EXISTS total_benefits_api;
-
+        -- (DDL) ALTER TABLE MASSIVO - Garante que todas as colunas existam
         ALTER TABLE "{schema}".{NOME_TABELA_RICA}
-            ADD COLUMN IF NOT EXISTS matricula VARCHAR(50),
+            ADD COLUMN IF NOT EXISTS matricula VARCHAR(100),
             ADD COLUMN IF NOT EXISTS email_corporativo VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS email_pessoal VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS data_nascimento DATE,
+            ADD COLUMN IF NOT EXISTS genero VARCHAR(50),
             ADD COLUMN IF NOT EXISTS estado_civil VARCHAR(50),
-            ADD COLUMN IF NOT EXISTS saudacao VARCHAR(50),
+            ADD COLUMN IF NOT EXISTS saudacao VARCHAR(50),                  -- <--- ADICIONADO
             ADD COLUMN IF NOT EXISTS nacionalidade VARCHAR(100),
-            ADD COLUMN IF NOT EXISTS tipo_necessidade_especial VARCHAR(100),
+            ADD COLUMN IF NOT EXISTS tipo_necessidade_especial VARCHAR(100), -- <--- ADICIONADO
             ADD COLUMN IF NOT EXISTS naturalidade VARCHAR(100),
-            ADD COLUMN IF NOT EXISTS nome_pai VARCHAR(255),
-            ADD COLUMN IF NOT EXISTS nome_mae VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS nome_pai VARCHAR(255),                 -- <--- ADICIONADO
+            ADD COLUMN IF NOT EXISTS nome_mae VARCHAR(255),                 -- <--- ADICIONADO
             ADD COLUMN IF NOT EXISTS pcd BOOLEAN,
+            ADD COLUMN IF NOT EXISTS data_admissao DATE, 
+            ADD COLUMN IF NOT EXISTS data_demissao DATE, 
+            ADD COLUMN IF NOT EXISTS motivo_demissao VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS forma_demissao VARCHAR(100),
+            ADD COLUMN IF NOT EXISTS decisao_demissao VARCHAR(100),
             ADD COLUMN IF NOT EXISTS salario_api NUMERIC(12, 2),
             ADD COLUMN IF NOT EXISTS turno_trabalho VARCHAR(100),
             ADD COLUMN IF NOT EXISTS tipo_contrato VARCHAR(100),
@@ -297,26 +297,29 @@ def carregar_dados_api(df_staging, df_beneficios, engine, schema):
             ADD COLUMN IF NOT EXISTS duracao_contrato VARCHAR(100),
             ADD COLUMN IF NOT EXISTS data_expiracao_contrato DATE,
             ADD COLUMN IF NOT EXISTS periodo_experiencia_dias INTEGER,
-            ADD COLUMN IF NOT EXISTS forma_demissao VARCHAR(100),
-            ADD COLUMN IF NOT EXISTS decisao_demissao VARCHAR(100),
             ADD COLUMN IF NOT EXISTS valor_rescisao NUMERIC(12, 2),
             ADD COLUMN IF NOT EXISTS total_beneficios_api NUMERIC(12, 2),
+            ADD COLUMN IF NOT EXISTS ativo BOOLEAN,
             ADD COLUMN IF NOT EXISTS etnia VARCHAR(50),
+            ADD COLUMN IF NOT EXISTS data_ultima_atualizacao_api DATE,
             ADD COLUMN IF NOT EXISTS nome_lider_imediato VARCHAR(255),
             ADD COLUMN IF NOT EXISTS lider_id_solides INTEGER,
             ADD COLUMN IF NOT EXISTS unidade_nome VARCHAR(255),
             ADD COLUMN IF NOT EXISTS unidade_id_solides INTEGER,
+            ADD COLUMN IF NOT EXISTS cargo_nome_api VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS descricao_cargo TEXT,
+            ADD COLUMN IF NOT EXISTS atividades_cargo TEXT,
             ADD COLUMN IF NOT EXISTS cargo_id_solides INTEGER,
+            ADD COLUMN IF NOT EXISTS departamento_nome_api VARCHAR(255),
             ADD COLUMN IF NOT EXISTS departamento_id_solides INTEGER,
             ADD COLUMN IF NOT EXISTS cep VARCHAR(20),
             ADD COLUMN IF NOT EXISTS logradouro VARCHAR(255),
             ADD COLUMN IF NOT EXISTS numero_endereco VARCHAR(50),
-            ADD COLUMN IF NOT EXISTS complemento_endereco VARCHAR(100),
+            ADD COLUMN IF NOT EXISTS complemento_endereco VARCHAR(255),
             ADD COLUMN IF NOT EXISTS bairro VARCHAR(100),
             ADD COLUMN IF NOT EXISTS cidade VARCHAR(100),
             ADD COLUMN IF NOT EXISTS estado VARCHAR(50),
             ADD COLUMN IF NOT EXISTS celular VARCHAR(50),
-            ADD COLUMN IF NOT EXISTS email_pessoal VARCHAR(255),
             ADD COLUMN IF NOT EXISTS telefone_emergencia VARCHAR(50),
             ADD COLUMN IF NOT EXISTS rg VARCHAR(50),
             ADD COLUMN IF NOT EXISTS data_emissao_rg DATE,
@@ -329,68 +332,82 @@ def carregar_dados_api(df_staging, df_beneficios, engine, schema):
             ADD COLUMN IF NOT EXISTS pis VARCHAR(50),
             ADD COLUMN IF NOT EXISTS banco_nome VARCHAR(100),
             ADD COLUMN IF NOT EXISTS banco_agencia VARCHAR(50),
-            ADD COLUMN IF NOT EXISTS banco_conta VARCHAR(50),
-            ADD COLUMN IF NOT EXISTS data_ultima_atualizacao_api DATE;
+            ADD COLUMN IF NOT EXISTS banco_conta VARCHAR(50);
 
-        INSERT INTO "{schema}".{NOME_TABELA_RICA} (colaborador_sk, colaborador_id_solides)
-        VALUES (0, -1) ON CONFLICT (colaborador_sk) DO NOTHING;
-
-        -- UPSERT MASSIVO completo
+        -- 4. UPSERT MASSIVO
         INSERT INTO "{schema}".{NOME_TABELA_RICA} (
-            colaborador_sk, colaborador_id_solides, cpf, nome_completo, data_nascimento, genero,
-            nacionalidade, escolaridade, nome_mae, nome_pai, estado_civil, etnia,
-            data_admissao, data_demissao, ativo, departamento_nome_api, cargo_nome_api,
-            matricula, salario_api, turno_trabalho, tipo_contrato, curso_formacao,
-            nivel_hierarquico, nome_lider_imediato, unidade_nome, email_corporativo, telefone_pessoal,
-            celular, logradouro, numero_endereco, complemento_endereco, bairro, cidade,
-            estado, cep, saudacao, tipo_necessidade_especial, naturalidade, pcd,
-            telefone_emergencia, email_pessoal, rg, data_emissao_rg,
-            orgao_emissor_rg, titulo_eleitor, zona_eleitoral, secao_eleitoral, ctps_numero,
-            ctps_serie, pis, data_contrato, duracao_contrato,
-            data_expiracao_contrato, periodo_experiencia_dias, forma_demissao, decisao_demissao,
-            valor_rescisao, total_beneficios_api, cargo_id_solides, departamento_id_solides,
-            banco_nome, banco_agencia, banco_conta, lider_id_solides, unidade_id_solides,
-            data_ultima_atualizacao_api, data_ultima_atualizacao
+            colaborador_sk, colaborador_id_solides, cpf, nome_completo, matricula, 
+            email_corporativo, email_pessoal, data_nascimento, genero, estado_civil,
+            saudacao, nacionalidade, tipo_necessidade_especial, naturalidade,
+            nome_pai, nome_mae, pcd, data_admissao, data_demissao, 
+            motivo_demissao, forma_demissao, decisao_demissao,
+            salario_api, turno_trabalho, tipo_contrato, data_contrato, escolaridade,
+            curso_formacao, nivel_hierarquico, duracao_contrato, data_expiracao_contrato,
+            periodo_experiencia_dias, valor_rescisao, total_beneficios_api, ativo, etnia,
+            data_ultima_atualizacao_api, nome_lider_imediato, lider_id_solides,
+            unidade_nome, unidade_id_solides, cargo_nome_api, 
+            descricao_cargo, atividades_cargo, cargo_id_solides,
+            departamento_nome_api, departamento_id_solides, cep, logradouro,
+            numero_endereco, complemento_endereco, bairro, cidade, estado,
+            celular, telefone_emergencia, rg, data_emissao_rg, orgao_emissor_rg,
+            titulo_eleitor, zona_eleitoral, secao_eleitoral, ctps_numero, ctps_serie,
+            pis, banco_nome, banco_agencia, banco_conta,
+            data_ultima_atualizacao
         )
         SELECT
-            base.colaborador_sk, stg.colaborador_id_solides, stg.cpf, stg.nome_completo, stg.data_nascimento, stg.genero,
-            stg.nacionalidade, stg.escolaridade, stg.nome_mae, stg.nome_pai, stg.estado_civil, stg.etnia,
-            stg.data_admissao, stg.data_demissao, stg.ativo, stg.departamento_nome_api, stg.cargo_nome_api,
-            stg.matricula, 
-            {to_num('stg.salario_api')}, 
-            stg.turno_trabalho, stg.tipo_contrato, stg.curso_formacao,
-            stg.nivel_hierarquico, stg.nome_lider_imediato, stg.unidade_nome, stg.email_corporativo, NULL,
-            stg.celular, stg.logradouro, stg.numero_endereco, stg.complemento_endereco, stg.bairro, stg.cidade,
-            stg.estado, stg.cep, stg.saudacao, stg.tipo_necessidade_especial, stg.naturalidade, stg.pcd,
-            stg.telefone_emergencia, stg.email_pessoal, stg.rg, stg.data_emissao_rg,
-            stg.orgao_emissor_rg, stg.titulo_eleitor, stg.zona_eleitoral, stg.secao_eleitoral, stg.ctps_numero,
-            stg.ctps_serie, stg.pis, stg.data_contrato, stg.duracao_contrato,
-            stg.data_expiracao_contrato, stg.periodo_experiencia_dias, stg.forma_demissao, stg.decisao_demissao,
-            {to_num('stg.valor_rescisao')}, {to_num('stg.total_beneficios_api')}, 
-            stg.cargo_id_solides, stg.departamento_id_solides,
-            stg.banco_nome, stg.banco_agencia, stg.banco_conta, stg.lider_id_solides, stg.unidade_id_solides,
-            stg.data_ultima_atualizacao_api, current_timestamp
+            base.colaborador_sk, stg.colaborador_id_solides, stg.cpf, stg.nome_completo, stg.matricula,
+            stg.email_corporativo, stg.email_pessoal, stg.data_nascimento, stg.genero, stg.estado_civil,
+            stg.saudacao, stg.nacionalidade, stg.tipo_necessidade_especial, stg.naturalidade,
+            stg.nome_pai, stg.nome_mae, stg.pcd, stg.data_admissao, stg.data_demissao,
+            stg.motivo_demissao, stg.forma_demissao, stg.decisao_demissao,
+            {to_num('stg.salario_api')}, stg.turno_trabalho, stg.tipo_contrato, stg.data_contrato, stg.escolaridade,
+            stg.curso_formacao, stg.nivel_hierarquico, stg.duracao_contrato, stg.data_expiracao_contrato,
+            stg.periodo_experiencia_dias, {to_num('stg.valor_rescisao')}, {to_num('stg.total_beneficios_api')}, stg.ativo, stg.etnia,
+            stg.data_ultima_atualizacao_api, stg.nome_lider_imediato, stg.lider_id_solides,
+            stg.unidade_nome, stg.unidade_id_solides, stg.cargo_nome_api,
+            stg.descricao_cargo, stg.atividades_cargo, stg.cargo_id_solides,
+            stg.departamento_nome_api, stg.departamento_id_solides, stg.cep, stg.logradouro,
+            stg.numero_endereco, stg.complemento_endereco, stg.bairro, stg.cidade, stg.estado,
+            stg.celular, stg.telefone_emergencia, stg.rg, stg.data_emissao_rg, stg.orgao_emissor_rg,
+            stg.titulo_eleitor, stg.zona_eleitoral, stg.secao_eleitoral, stg.ctps_numero, stg.ctps_serie,
+            stg.pis, stg.banco_nome, stg.banco_agencia, stg.banco_conta,
+            current_timestamp
         FROM "{schema}".{NOME_TABELA_STAGING} AS stg
         JOIN "{schema}".{NOME_TABELA_BASE} AS base ON stg.cpf = base.cpf
         WHERE stg.colaborador_id_solides IS NOT NULL
+
         ON CONFLICT (colaborador_id_solides) DO UPDATE SET
-            cpf = EXCLUDED.cpf,
             nome_completo = EXCLUDED.nome_completo,
+            cpf = EXCLUDED.cpf,
             matricula = EXCLUDED.matricula,
-            rg = EXCLUDED.rg,
-            pis = EXCLUDED.pis,
+            email_corporativo = EXCLUDED.email_corporativo,
+            email_pessoal = EXCLUDED.email_pessoal,
+            celular = EXCLUDED.celular,
+            telefone_emergencia = EXCLUDED.telefone_emergencia,
             data_nascimento = EXCLUDED.data_nascimento,
             genero = EXCLUDED.genero,
             estado_civil = EXCLUDED.estado_civil,
             nacionalidade = EXCLUDED.nacionalidade,
             naturalidade = EXCLUDED.naturalidade,
-            etnia = EXCLUDED.etnia,
             nome_pai = EXCLUDED.nome_pai,
             nome_mae = EXCLUDED.nome_mae,
-            email_corporativo = EXCLUDED.email_corporativo,
-            email_pessoal = EXCLUDED.email_pessoal,
-            celular = EXCLUDED.celular,
-            telefone_emergencia = EXCLUDED.telefone_emergencia,
+            pcd = EXCLUDED.pcd,
+            etnia = EXCLUDED.etnia,
+            ativo = EXCLUDED.ativo,
+            data_admissao = EXCLUDED.data_admissao,
+            data_demissao = EXCLUDED.data_demissao,
+            motivo_demissao = EXCLUDED.motivo_demissao,
+            forma_demissao = EXCLUDED.forma_demissao,
+            decisao_demissao = EXCLUDED.decisao_demissao,
+            salario_api = EXCLUDED.salario_api,
+            tipo_contrato = EXCLUDED.tipo_contrato,
+            nivel_hierarquico = EXCLUDED.nivel_hierarquico,
+            cargo_nome_api = EXCLUDED.cargo_nome_api,
+            descricao_cargo = EXCLUDED.descricao_cargo,
+            atividades_cargo = EXCLUDED.atividades_cargo,
+            departamento_nome_api = EXCLUDED.departamento_nome_api,
+            unidade_nome = EXCLUDED.unidade_nome,
+            nome_lider_imediato = EXCLUDED.nome_lider_imediato,
             cep = EXCLUDED.cep,
             logradouro = EXCLUDED.logradouro,
             numero_endereco = EXCLUDED.numero_endereco,
@@ -398,20 +415,18 @@ def carregar_dados_api(df_staging, df_beneficios, engine, schema):
             bairro = EXCLUDED.bairro,
             cidade = EXCLUDED.cidade,
             estado = EXCLUDED.estado,
-            cargo_nome_api = EXCLUDED.cargo_nome_api,
-            nivel_hierarquico = EXCLUDED.nivel_hierarquico,
-            departamento_nome_api = EXCLUDED.departamento_nome_api,
-            salario_api = EXCLUDED.salario_api,
-            data_admissao = EXCLUDED.data_admissao,
-            ativo = EXCLUDED.ativo,
-            nome_lider_imediato = EXCLUDED.nome_lider_imediato,
-            unidade_nome = EXCLUDED.unidade_nome,
+            rg = EXCLUDED.rg,
+            pis = EXCLUDED.pis,
+            ctps_numero = EXCLUDED.ctps_numero,
+            ctps_serie = EXCLUDED.ctps_serie,
+            titulo_eleitor = EXCLUDED.titulo_eleitor,
             banco_nome = EXCLUDED.banco_nome,
             banco_agencia = EXCLUDED.banco_agencia,
             banco_conta = EXCLUDED.banco_conta,
             data_ultima_atualizacao = current_timestamp;
 
-        -- FATO BENEFICIOS
+        -- 5. FATO BENEFICIOS
+        """ + (f"""
         CREATE TABLE IF NOT EXISTS "{schema}".{NOME_FATO_BEN} (
             beneficio_id SERIAL PRIMARY KEY, colaborador_sk INTEGER,
             tipo_beneficio VARCHAR(100), nome_beneficio VARCHAR(255),
@@ -432,6 +447,7 @@ def carregar_dados_api(df_staging, df_beneficios, engine, schema):
         FROM "{schema}".{NOME_STAGING_BEN} stg
         JOIN "{schema}".{NOME_TABELA_STAGING} stg_colab ON stg.colaborador_id_solides = stg_colab.colaborador_id_solides
         JOIN "{schema}".{NOME_TABELA_BASE} base ON stg_colab.cpf = base.cpf;
+        """ if not df_beneficios.empty else "") + f"""
         """
 
         with engine.begin() as conn:
