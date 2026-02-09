@@ -1,0 +1,127 @@
+2026-02-09 16:18:10,896 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 16:18:10,898 - [INFO] - Main_Pipeline -    INICIANDO PIPELINE DE DADOS - ARQ PEOPLE INTEL
+2026-02-09 16:18:10,898 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 16:18:11,081 - [INFO] - src.load - Schema 'FOPAG' verificado/garantido com sucesso.
+2026-02-09 16:18:11,081 - [INFO] - Main_Pipeline - [OK] Conexão com banco estabelecida. Schema: FOPAG
+2026-02-09 16:18:11,081 - [INFO] - Main_Pipeline - --- [ETAPA 1] Dimensão Calendário ---
+2026-02-09 16:18:11,151 - [INFO] - src.load - Dimensão Calendário verificada/atualizada.
+2026-02-09 16:18:11,152 - [INFO] - Main_Pipeline - --- [ETAPA 2] Pipeline Folha de Pagamento (PDFs) ---
+2026-02-09 16:18:11,154 - [INFO] - src.extract - Iniciando processamento de 50 PDFs...
+2026-02-09 16:18:11,155 - [INFO] - src.extract -  -> Lendo PDF: 01.2023 ARQDIGITAL - Folha de Pagamento c.Prolabore Carol.pdf
+2026-02-09 16:18:12,164 - [INFO] - src.extract -  -> Lendo PDF: 04.2023 ARQDIGITAL - Folha de Pagamento.pdf
+2026-02-09 16:18:13,139 - [INFO] - src.extract -  -> Lendo PDF: 04.2024 ARQ - folha de Pagamento.pdf
+2026-02-09 16:18:14,561 - [INFO] - src.extract -  -> Lendo PDF: 05.2023 ARQDIGITAL - Folha de Pagamento.pdf
+2026-02-09 16:18:15,510 - [INFO] - src.extract -  -> Lendo PDF: 05.2024 ARQDIGITAL - Folha de Pagamento.pdf
+2026-02-09 16:18:17,015 - [INFO] - src.extract -  -> Lendo PDF: 06.2023 ARQDIGITAL - Folha de Pagamento.pdf
+2026-02-09 16:18:18,116 - [INFO] - src.extract -  -> Lendo PDF: 06.2024 ARQDIGITAL - Folha de Pagamento 2.pdf
+2026-02-09 16:18:19,591 - [INFO] - src.extract -  -> Lendo PDF: 08.2024 ARQDIGITAL - Folha de Pagamento.pdf
+2026-02-09 16:18:20,905 - [INFO] - src.extract -  -> Lendo PDF: 09.2024 ARQDIGITAL - Folha de Pagamento.pdf
+2026-02-09 16:18:22,245 - [INFO] - src.extract -  -> Lendo PDF: 10 - Extrato Mensal - 12-2023.pdf
+2026-02-09 16:18:23,482 - [INFO] - src.extract -  -> Lendo PDF: 10- Extrato Folha- 06-2025.pdf
+2026-02-09 16:18:25,041 - [INFO] - src.extract -  -> Lendo PDF: 10- Extrato Mensal 03-2023.pdf
+2026-02-09 16:18:26,080 - [INFO] - src.extract -  -> Lendo PDF: 10--Extrato Geral- 09-2025.pdf
+2026-02-09 16:18:27,895 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato 13º integral.pdf
+2026-02-09 16:18:28,907 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Decimo Terceiro- 10-2025.pdf
+2026-02-09 16:18:29,857 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Decimo Terceiro- 12-2025.pdf
+2026-02-09 16:18:31,194 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Folha- 01-2024.pdf
+2026-02-09 16:18:32,620 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Folha- 04-2025.pdf
+2026-02-09 16:18:34,161 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Folha- 07-2023.pdf
+2026-02-09 16:18:35,417 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Folha- 07-2025.pdf
+2026-02-09 16:18:37,028 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Folha- 08-2023.pdf
+2026-02-09 16:18:38,362 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Folha- 09-2023.pdf
+2026-02-09 16:18:39,701 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Folha- 10-2025.pdf
+2026-02-09 16:18:41,495 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Mensal 01.2026.pdf
+2026-02-09 16:18:43,229 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Mensal 02-2023.pdf
+2026-02-09 16:18:44,289 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Mensal 06-2022.pdf
+2026-02-09 16:18:45,292 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Mensal 07-2022.pdf
+2026-02-09 16:18:46,357 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Mensal 08-2022.pdf
+2026-02-09 16:18:47,297 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Mensal 09-2022.pdf
+2026-02-09 16:18:48,286 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Mensal 10-2022.pdf
+2026-02-09 16:18:49,245 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Mensal 11-2022.pdf
+2026-02-09 16:18:50,153 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Mensal 11.2025.pdf
+2026-02-09 16:18:51,880 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Mensal 12-2022.pdf
+2026-02-09 16:18:52,864 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Mensal 12.2025.pdf
+2026-02-09 16:18:54,480 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Mensal-01-2025.pdf
+2026-02-09 16:18:55,944 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Mensal-02-2024.pdf
+2026-02-09 16:18:57,340 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Mensal-02-2025 ...pdf
+2026-02-09 16:18:58,799 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Mensal-03-2024.pdf
+2026-02-09 16:19:00,449 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Mensal-07-2024 ok.pdf
+2026-02-09 16:19:02,031 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Mensal-08-2025.pdf
+2026-02-09 16:19:03,626 - [INFO] - src.extract -  -> Lendo PDF: 10-Extrato Mensal-10-2024.pdf
+2026-02-09 16:19:05,051 - [INFO] - src.extract -  -> Lendo PDF: 10.2023 ARQDIGITAL - Folha de Pagamento.pdf
+2026-02-09 16:19:06,259 - [INFO] - src.extract -  -> Lendo PDF: 11.2023 ARQ - Folha de Pagamento.pdf
+2026-02-09 16:19:07,343 - [INFO] - src.extract -  -> Lendo PDF: 11.2024 ARQDIGITAL - 13° 1° Parcela.pdf
+2026-02-09 16:19:08,287 - [INFO] - src.extract -  -> Lendo PDF: 11.2024 ARQDIGITAL - Folha de Pagamento.pdf
+2026-02-09 16:19:09,656 - [INFO] - src.extract -  -> Lendo PDF: 12.2024 ARQDIGITAL - Folha de Pagamento.pdf
+2026-02-09 16:19:11,054 - [INFO] - src.extract -  -> Lendo PDF: 13.2024 ARQDIGITAL - Folha Segunda Parcela do 13º Salário.pdf
+2026-02-09 16:19:12,228 - [INFO] - src.extract -  -> Lendo PDF: ARQ - 1ª Parcela 13.2023.pdf
+2026-02-09 16:19:12,855 - [INFO] - src.extract -  -> Lendo PDF: Extrato Folha-03-2025.pdf
+2026-02-09 16:19:14,246 - [INFO] - src.extract -  -> Lendo PDF: Extrato Folha-05-2025.pdf
+2026-02-09 16:19:15,837 - [INFO] - Main_Pipeline - Transformando dados da Folha...
+2026-02-09 16:19:15,837 - [INFO] - src.transform - Iniciando transformação PDF. Consolidado: 2791 linhas, Detalhado: 17522 linhas.
+2026-02-09 16:19:16,262 - [INFO] - src.transform - Transformação PDF concluída.
+2026-02-09 16:19:16,374 - [INFO] - Main_Pipeline - [OK] CSVs de auditoria gerados em: C:\Projetos\ARQ-People Intelligence - Empresa\output
+2026-02-09 16:19:16,374 - [INFO] - Main_Pipeline - Carregando Fatos de Folha no Banco...
+2026-02-09 16:19:16,374 - [INFO] - src.load - Iniciando carga de Fatos de Folha (PDF)...
+2026-02-09 16:19:16,490 - [INFO] - src.load - Dimensão Colaboradores Base atualizada via CSV.
+2026-02-09 16:19:16,699 - [INFO] - src.load - Fato Consolidada carregada com sucesso.
+2026-02-09 16:19:17,338 - [INFO] - src.load - Fato Detalhada carregada com sucesso.
+2026-02-09 16:19:17,338 - [INFO] - Main_Pipeline - --- [ETAPA 3] Pipeline API Solides ---
+2026-02-09 16:19:17,339 - [INFO] - src.extract - --- API Solides: Buscando lista de IDs... ---
+2026-02-09 16:19:19,788 - [INFO] - src.extract - Página 1 carregada...
+2026-02-09 16:19:20,644 - [INFO] - src.extract - Página 2 carregada...
+2026-02-09 16:19:21,329 - [INFO] - src.extract - --- API Solides: Iniciando extração PARALELA de 140 colaboradores... ---
+2026-02-09 16:19:25,444 - [INFO] - src.extract - Progresso API: 100/140 concluídos...
+2026-02-09 16:19:26,625 - [INFO] - Main_Pipeline - Transformando dados da API...
+2026-02-09 16:19:26,625 - [INFO] - src.transform - Transformando 140 colaboradores da API...
+2026-02-09 16:19:26,639 - [INFO] - src.transform - Transformação API concluída. 140 colaboradores processados.
+2026-02-09 16:19:26,650 - [INFO] - src.transform - Transformação de Benefícios concluída. 477 registros.
+2026-02-09 16:19:26,650 - [INFO] - Main_Pipeline - Carregando dados da API no Banco...
+2026-02-09 16:19:26,651 - [INFO] - src.load - Carregando staging_colaboradores...
+2026-02-09 16:19:26,703 - [INFO] - src.load - Carregando staging_beneficios_api...
+2026-02-09 16:19:26,778 - [INFO] - src.load - Carga API (Colaboradores e Benefícios) concluída com sucesso.
+2026-02-09 16:19:26,778 - [INFO] - Main_Pipeline - --- [ETAPA 4] Pós-Processamento ---
+2026-02-09 16:19:26,779 - [INFO] - src.load - Iniciando pós-processamento de transferidos...
+2026-02-09 16:19:26,788 - [INFO] - src.load - Status 'Transferido' processado com sucesso.
+2026-02-09 16:19:26,788 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 16:19:26,789 - [INFO] - Main_Pipeline -    PIPELINE FINALIZADO EM 1m 15s
+2026-02-09 16:19:26,789 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 16:26:26,939 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 16:26:26,939 - [INFO] - Main_Pipeline -    INICIANDO PIPELINE DE DADOS - ARQ PEOPLE INTEL
+2026-02-09 16:26:26,939 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 16:26:27,073 - [INFO] - src.load - Schema 'FOPAG' verificado/garantido com sucesso.
+2026-02-09 16:26:27,073 - [INFO] - Main_Pipeline - [OK] Conexão com banco estabelecida. Schema: FOPAG
+2026-02-09 16:26:27,074 - [INFO] - Main_Pipeline - --- [ETAPA 1] Dimensão Calendário ---
+2026-02-09 16:26:27,113 - [INFO] - src.load - Dimensão Calendário verificada/atualizada.
+2026-02-09 16:26:27,113 - [INFO] - Main_Pipeline - --- [ETAPA 2] Pipeline Folha de Pagamento (PDFs) ---
+2026-02-09 16:26:27,115 - [INFO] - src.extract - Iniciando processamento PARALELO de 50 PDFs usando 12 núcleos CPU...
+2026-02-09 16:26:45,326 - [INFO] - src.extract - Processamento PDF finalizado. Consolidando DataFrames...
+2026-02-09 16:26:45,348 - [INFO] - Main_Pipeline - Transformando dados da Folha...
+2026-02-09 16:26:45,348 - [INFO] - src.transform - Iniciando transformação PDF. Consolidado: 2791 linhas, Detalhado: 17522 linhas.
+2026-02-09 16:26:45,672 - [INFO] - src.transform - Transformação PDF concluída.
+2026-02-09 16:26:45,776 - [INFO] - Main_Pipeline - [OK] CSVs de auditoria gerados em: C:\Projetos\ARQ-People Intelligence - Empresa\output
+2026-02-09 16:26:45,776 - [INFO] - Main_Pipeline - Carregando Fatos de Folha no Banco...
+2026-02-09 16:26:45,777 - [INFO] - src.load - Iniciando carga de Fatos de Folha (PDF)...
+2026-02-09 16:26:45,916 - [INFO] - src.load - Dimensão Colaboradores Base atualizada via CSV.
+2026-02-09 16:26:46,145 - [INFO] - src.load - Fato Consolidada carregada com sucesso.
+2026-02-09 16:26:46,872 - [INFO] - src.load - Fato Detalhada carregada com sucesso.
+2026-02-09 16:26:46,873 - [INFO] - Main_Pipeline - --- [ETAPA 3] Pipeline API Solides ---
+2026-02-09 16:26:46,873 - [INFO] - src.extract - --- API Solides: Buscando lista de IDs... ---
+2026-02-09 16:26:49,152 - [INFO] - src.extract - Página 1 carregada...
+2026-02-09 16:26:49,988 - [INFO] - src.extract - Página 2 carregada...
+2026-02-09 16:26:50,190 - [INFO] - src.extract - --- API Solides: Iniciando extração PARALELA de 140 colaboradores... ---
+2026-02-09 16:26:53,732 - [INFO] - src.extract - Progresso API: 100/140 concluídos...
+2026-02-09 16:26:54,526 - [INFO] - Main_Pipeline - Transformando dados da API...
+2026-02-09 16:26:54,526 - [INFO] - src.transform - Transformando 140 colaboradores da API...
+2026-02-09 16:26:54,539 - [INFO] - src.transform - Transformação API concluída. 140 colaboradores processados.
+2026-02-09 16:26:54,564 - [INFO] - src.transform - Transformação de Benefícios concluída. 477 registros.
+2026-02-09 16:26:54,564 - [INFO] - Main_Pipeline - Carregando dados da API no Banco...
+2026-02-09 16:26:54,565 - [INFO] - src.load - Carregando staging_colaboradores...
+2026-02-09 16:26:54,613 - [INFO] - src.load - Carregando staging_beneficios_api...
+2026-02-09 16:26:54,695 - [INFO] - src.load - Carga API (Colaboradores e Benefícios) concluída com sucesso.
+2026-02-09 16:26:54,695 - [INFO] - Main_Pipeline - --- [ETAPA 4] Pós-Processamento ---
+2026-02-09 16:26:54,695 - [INFO] - src.load - Iniciando pós-processamento de transferidos...
+2026-02-09 16:26:54,711 - [INFO] - src.load - Status 'Transferido' processado com sucesso.
+2026-02-09 16:26:54,712 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 16:26:54,712 - [INFO] - Main_Pipeline -    PIPELINE FINALIZADO EM 0m 27s
+2026-02-09 16:26:54,712 - [INFO] - Main_Pipeline - =======================================================

@@ -1,26 +1,36 @@
 # main.py
 import os
 import sys
+import time  # <--- NOVO: Para medir a performance
 from dotenv import load_dotenv
+
+# Imports dos módulos
 from src.database import get_db_engine
 from src.extract import processar_pdfs, extrair_api_solides
 from src.transform import (
-    transformar_dados_pdf, 
-    transformar_dados_api, 
+    transformar_dados_pdf,
+    transformar_dados_api,
     transformar_beneficios_api
 )
 from src.load import (
-    garantir_schema_banco, 
+    garantir_schema_banco,
     carregar_dim_calendario,
     carregar_dados_api,
     carregar_fatos_folha,
     processar_status_transferidos
 )
+from src.logger import setup_logger
+
+# Inicializa o logger principal
+logger = setup_logger("Main_Pipeline")
+
 
 def run_pipeline():
-    print("\n=======================================================")
-    print("   INICIANDO PIPELINE DE DADOS - ARQ PEOPLE INTEL")
-    print("=======================================================\n")
+    start_time = time.time()  # <--- Inicia contagem
+
+    logger.info("=======================================================")
+    logger.info("   INICIANDO PIPELINE DE DADOS - ARQ PEOPLE INTEL")
+    logger.info("=======================================================")
 
     load_dotenv()
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -30,66 +40,83 @@ def run_pipeline():
     if not os.path.exists(PATH_OUTPUT):
         os.makedirs(PATH_OUTPUT)
 
+    # 1. CONEXÃO COM BANCO
     try:
         engine, schema = get_db_engine()
         garantir_schema_banco(engine, schema)
-        print(f"[OK] Conexão com banco estabelecida. Schema: {schema}")
+        logger.info(f"[OK] Conexão com banco estabelecida. Schema: {schema}")
     except Exception as e:
-        print(f"[ERRO FATAL] Não foi possível conectar ao banco: {e}")
+        logger.critical(f"[ERRO FATAL] Não foi possível conectar ao banco: {e}", exc_info=True)
         sys.exit(1)
 
-    # 1. DIMENSÃO CALENDÁRIO (Independente)
-    print("\n--- [ETAPA 1] Dimensão Calendário ---")
+    # 2. DIMENSÃO CALENDÁRIO
+    logger.info("--- [ETAPA 1] Dimensão Calendário ---")
     carregar_dim_calendario(engine, schema)
 
-    # 2. PIPELINE FOLHA DE PAGAMENTO (PDFs) - PRIMEIRO A RODAR
+    # 3. PIPELINE FOLHA DE PAGAMENTO (PDFs)
     if os.path.exists(PATH_INPUT):
-        print(f"\n--- [ETAPA 2] Pipeline Folha de Pagamento (PDFs) ---")
-        
+        logger.info("--- [ETAPA 2] Pipeline Folha de Pagamento (PDFs) ---")
+
+        # O processar_pdfs já tem logs internos
         df_raw_consol, df_raw_detalhe = processar_pdfs(PATH_INPUT)
-        
+
         if not df_raw_consol.empty:
-            print("Transformando dados da Folha...")
+            logger.info("Transformando dados da Folha...")
             df_final_consol, df_final_detalhe = transformar_dados_pdf(df_raw_consol, df_raw_detalhe)
-            
-            # Exportação CSV
+
+            # Exportação CSV para Auditoria
             path_csv_consol = os.path.join(PATH_OUTPUT, 'FOPAG_Consolidada_Tratada.csv')
             path_csv_detalhe = os.path.join(PATH_OUTPUT, 'FOPAG_Detalhada_Tratada.csv')
-            df_final_consol.to_csv(path_csv_consol, index=False, sep=';', decimal=',', encoding='utf-8-sig')
-            if not df_final_detalhe.empty:
-                df_final_detalhe.to_csv(path_csv_detalhe, index=False, sep=';', decimal=',', encoding='utf-8-sig')
-            print(f"[OK] CSVs gerados em output.")
+
+            try:
+                df_final_consol.to_csv(path_csv_consol, index=False, sep=';', decimal=',', encoding='utf-8-sig')
+                if not df_final_detalhe.empty:
+                    df_final_detalhe.to_csv(path_csv_detalhe, index=False, sep=';', decimal=',', encoding='utf-8-sig')
+                logger.info(f"[OK] CSVs de auditoria gerados em: {PATH_OUTPUT}")
+            except Exception as e:
+                logger.error(f"Erro ao gerar CSVs: {e}")
 
             # Load Banco
-            print("Carregando Fatos de Folha no Banco...")
+            logger.info("Carregando Fatos de Folha no Banco...")
             carregar_fatos_folha(df_final_consol, df_final_detalhe, engine, schema)
         else:
-            print("[AVISO] Nenhum dado extraído dos PDFs.")
+            logger.warning("[AVISO] Nenhum dado foi extraído dos PDFs. Verifique a pasta input ou o layout.")
     else:
-        print(f"\n[ERRO] Pasta de input não encontrada: {PATH_INPUT}")
+        logger.error(f"[ERRO] Pasta de input não encontrada: {PATH_INPUT}")
 
-    # 3. PIPELINE API SOLIDES (DIMENSÕES RICAS) - SEGUNDO A RODAR
+    # 4. PIPELINE API SOLIDES (Agora com Paralelismo Interno)
     token_api = os.getenv("SOLIDES_API_TOKEN")
     if token_api:
-        print("\n--- [ETAPA 3] Pipeline API Solides ---")
-        dados_brutos_api = extrair_api_solides(token_api)
-        
-        print("Transformando dados da API...")
-        df_colaboradores = transformar_dados_api(dados_brutos_api)
-        df_beneficios = transformar_beneficios_api(dados_brutos_api)
-        
-        print("Carregando dados da API no Banco...")
-        carregar_dados_api(df_colaboradores, df_beneficios, engine, schema)
-    else:
-        print("\n[AVISO] Token da API não encontrado. Pulando etapa API.")
+        logger.info("--- [ETAPA 3] Pipeline API Solides ---")
 
-    # 4. PÓS PROCESSAMENTO
-    print("\n--- [ETAPA 4] Pós-Processamento ---")
+        # Aqui a mágica do paralelismo acontece dentro do extract
+        dados_brutos_api = extrair_api_solides(token_api)
+
+        if dados_brutos_api:
+            logger.info("Transformando dados da API...")
+            df_colaboradores = transformar_dados_api(dados_brutos_api)
+            df_beneficios = transformar_beneficios_api(dados_brutos_api)
+
+            logger.info("Carregando dados da API no Banco...")
+            carregar_dados_api(df_colaboradores, df_beneficios, engine, schema)
+        else:
+            logger.warning("A API retornou uma lista vazia de dados brutos.")
+    else:
+        logger.warning("[AVISO] Token da API não encontrado no .env. Pulando etapa API.")
+
+    # 5. PÓS PROCESSAMENTO
+    logger.info("--- [ETAPA 4] Pós-Processamento ---")
     processar_status_transferidos(engine, schema)
 
-    print("\n=======================================================")
-    print("   PIPELINE FINALIZADO")
-    print("=======================================================\n")
+    # Cálculo do tempo total
+    end_time = time.time()
+    tempo_total = end_time - start_time
+    mins, secs = divmod(tempo_total, 60)
+
+    logger.info("=======================================================")
+    logger.info(f"   PIPELINE FINALIZADO EM {int(mins)}m {int(secs)}s")
+    logger.info("=======================================================")
+
 
 if __name__ == "__main__":
     run_pipeline()

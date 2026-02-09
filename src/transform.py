@@ -4,6 +4,11 @@ from decimal import Decimal, InvalidOperation
 from datetime import datetime
 from .utils import clean_text_series, limpar_valor_moeda
 
+# --- NOVO: Import do Logger ---
+from .logger import setup_logger
+
+logger = setup_logger(__name__)
+
 
 def converter_para_decimal(val):
     """
@@ -55,6 +60,10 @@ def transformar_dados_pdf(df_consol, df_detalhe):
     """
     Aplica tipagem forte (Date, Decimal) nos dados extraídos do PDF.
     """
+    # --- LOG ---
+    logger.info(
+        f"Iniciando transformação PDF. Consolidado: {len(df_consol)} linhas, Detalhado: {len(df_detalhe)} linhas.")
+
     colunas_monetarias_consol = [
         'salario_contratual', 'total_proventos', 'total_descontos',
         'valor_liquido', 'base_inss', 'base_fgts', 'valor_fgts',
@@ -107,6 +116,8 @@ def transformar_dados_pdf(df_consol, df_detalhe):
         for col in cols_texto_det:
             df_detalhe[col] = clean_text_series(df_detalhe[col])
 
+    # --- LOG ---
+    logger.info("Transformação PDF concluída.")
     return df_consol, df_detalhe
 
 
@@ -116,7 +127,12 @@ def transformar_dados_api(lista_dicts_api):
     Aplica achatamento (flatten) completo para pegar campos aninhados.
     """
     if not lista_dicts_api:
+        # --- LOG ---
+        logger.warning("Lista da API está vazia. Retornando DataFrame vazio.")
         return pd.DataFrame()
+
+    # --- LOG ---
+    logger.info(f"Transformando {len(lista_dicts_api)} colaboradores da API...")
 
     # O json_normalize faz o trabalho pesado de 'achatar' objetos aninhados
     df = pd.json_normalize(lista_dicts_api)
@@ -144,7 +160,7 @@ def transformar_dados_api(lista_dicts_api):
         'disabledPerson': 'pcd',
         'dateAdmission': 'data_admissao',
         'dateDismissal': 'data_demissao',
-        'reasonDismissal': 'motivo_demissao', # Adicionado
+        'reasonDismissal': 'motivo_demissao',  # Adicionado
         'salary': 'salario_api',
         'workShift': 'turno_trabalho',
         'typeContract': 'tipo_contrato',
@@ -169,8 +185,8 @@ def transformar_dados_api(lista_dicts_api):
         'unity.name': 'unidade_nome',
         'unity.id': 'unidade_id_solides',
         'position.name': 'cargo_nome_api',
-        'position.briefDescription': 'descricao_cargo', # Adicionado
-        'position.activities': 'atividades_cargo', # Adicionado
+        'position.briefDescription': 'descricao_cargo',  # Adicionado
+        'position.activities': 'atividades_cargo',  # Adicionado
         'position.id': 'cargo_id_solides',
         'departament.name': 'departamento_nome_api',
         'departament.id': 'departamento_id_solides',
@@ -209,8 +225,6 @@ def transformar_dados_api(lista_dicts_api):
 
     # --- Limpeza de Tipos ---
 
-
-
     # CPF
     if 'cpf' in df.columns:
         df['cpf'] = df['cpf'].apply(clean_digits)
@@ -247,14 +261,15 @@ def transformar_dados_api(lista_dicts_api):
     colunas_finais = [
         'colaborador_id_solides', 'cpf', 'nome_completo', 'matricula', 'email_corporativo',
         'data_nascimento', 'genero', 'estado_civil', 'saudacao', 'nacionalidade',
-        'tipo_necessidade_especial', 'naturalidade', 'nome_pai', 'nome_mae','pcd',
-        'data_admissao', 'data_demissao','motivo_demissao', 'salario_api', 'turno_trabalho', 'tipo_contrato',
+        'tipo_necessidade_especial', 'naturalidade', 'nome_pai', 'nome_mae', 'pcd',
+        'data_admissao', 'data_demissao', 'motivo_demissao', 'salario_api', 'turno_trabalho', 'tipo_contrato',
         'data_contrato', 'escolaridade', 'curso_formacao', 'nivel_hierarquico',
         'duracao_contrato', 'data_expiracao_contrato', 'periodo_experiencia_dias',
         'forma_demissao', 'decisao_demissao', 'valor_rescisao', 'total_beneficios_api',
         'ativo', 'etnia', 'data_ultima_atualizacao_api',
         'nome_lider_imediato', 'lider_id_solides', 'unidade_nome', 'unidade_id_solides',
-        'cargo_nome_api', 'descricao_cargo', 'atividades_cargo','cargo_id_solides', 'departamento_nome_api', 'departamento_id_solides',
+        'cargo_nome_api', 'descricao_cargo', 'atividades_cargo', 'cargo_id_solides', 'departamento_nome_api',
+        'departamento_id_solides',
         'cep', 'logradouro', 'numero_endereco', 'complemento_endereco', 'bairro', 'cidade', 'estado',
         'celular', 'email_pessoal', 'telefone_emergencia',
         'rg', 'data_emissao_rg', 'orgao_emissor_rg', 'titulo_eleitor', 'zona_eleitoral', 'secao_eleitoral',
@@ -265,11 +280,16 @@ def transformar_dados_api(lista_dicts_api):
         if col not in df.columns:
             df[col] = None
 
+    # --- LOG ---
+    logger.info(f"Transformação API concluída. {len(df)} colaboradores processados.")
+
     return df[colunas_finais].copy()
 
 
 def transformar_beneficios_api(lista_dicts_api):
     if not lista_dicts_api:
+        # --- LOG ---
+        logger.warning("Lista API vazia, nenhum benefício a processar.")
         return pd.DataFrame()
 
     lista_beneficios = []
@@ -293,6 +313,8 @@ def transformar_beneficios_api(lista_dicts_api):
     df = pd.DataFrame(lista_beneficios)
 
     if df.empty:
+        # --- LOG ---
+        logger.info("Nenhum benefício encontrado nos dados da API.")
         return pd.DataFrame(columns=[
             'colaborador_id_solides', 'nome_beneficio', 'tipo_beneficio',
             'valor_beneficio', 'valor_desconto', 'periodicidade',
@@ -302,4 +324,8 @@ def transformar_beneficios_api(lista_dicts_api):
     df['valor_beneficio'] = df['valor_bruto'].apply(limpar_valor_moeda)
     df['valor_desconto'] = df['valor_desconto_bruto'].apply(limpar_valor_moeda)
     df.drop(columns=['valor_bruto', 'valor_desconto_bruto'], inplace=True)
+
+    # --- LOG ---
+    logger.info(f"Transformação de Benefícios concluída. {len(df)} registros.")
+
     return df

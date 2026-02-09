@@ -2,14 +2,25 @@ import pandas as pd
 from sqlalchemy import text
 from .constants import SCHEMA_TOTAIS, SCHEMA_RUBRICAS
 
+# --- NOVO: Import do Logger ---
+from .logger import setup_logger
+
+logger = setup_logger(__name__)
+
 
 def garantir_schema_banco(engine, schema_name):
     """
     Garante que o schema e a extensão unaccent existam no banco.
     """
-    with engine.begin() as conn:
-        conn.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{schema_name}"'))
-        conn.execute(text(f'CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA "{schema_name}"'))
+    try:
+        with engine.begin() as conn:
+            conn.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{schema_name}"'))
+            conn.execute(text(f'CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA "{schema_name}"'))
+        # --- LOG ---
+        logger.info(f"Schema '{schema_name}' verificado/garantido com sucesso.")
+    except Exception as e:
+        logger.error(f"Erro ao criar schema/extensão: {e}", exc_info=True)
+        raise e
 
 
 # --------------------------------------------------------------------------------
@@ -64,9 +75,13 @@ def carregar_dim_calendario(engine, schema):
     END $$;
     """)
 
-    with engine.begin() as conn:
-        conn.execute(sql)
-    print("Dimensão Calendário verificada/atualizada.")
+    try:
+        with engine.begin() as conn:
+            conn.execute(sql)
+        # --- LOG ---
+        logger.info("Dimensão Calendário verificada/atualizada.")
+    except Exception as e:
+        logger.error(f"Erro ao carregar Dimensão Calendário: {e}", exc_info=True)
 
 
 # --------------------------------------------------------------------------------
@@ -76,140 +91,156 @@ def carregar_fatos_folha(df_consol, df_detalhe, engine, schema):
     """
     Carrega as tabelas fato_folha_consolidada e fato_folha_detalhada.
     """
+    # --- LOG ---
+    logger.info("Iniciando carga de Fatos de Folha (PDF)...")
 
     # --- Parte A: Popular/Atualizar Dimensão Base ---
     if not df_consol.empty:
-        cols_base = ['cpf', 'nome_funcionario', 'data_admissao', 'data_demissao', 'situacao', 'departamento', 'cargo']
-        df_base_load = df_consol[cols_base].copy().rename(columns={
-            'nome_funcionario': 'nome_colaborador',
-            'data_admissao': 'data_admissao_csv',
-            'data_demissao': 'data_demissao_csv',
-            'situacao': 'situacao_csv',
-            'departamento': 'departamento_csv',
-            'cargo': 'cargo_csv'
-        })
+        try:
+            cols_base = ['cpf', 'nome_funcionario', 'data_admissao', 'data_demissao', 'situacao', 'departamento',
+                         'cargo']
+            df_base_load = df_consol[cols_base].copy().rename(columns={
+                'nome_funcionario': 'nome_colaborador',
+                'data_admissao': 'data_admissao_csv',
+                'data_demissao': 'data_demissao_csv',
+                'situacao': 'situacao_csv',
+                'departamento': 'departamento_csv',
+                'cargo': 'cargo_csv'
+            })
 
-        # Staging: O Pandas agora manda None (NULL) real, então o SQL não precisa de CAST
-        df_base_load.to_sql("stg_base_csv_temp", engine, schema=schema, if_exists='replace', index=False)
+            # Staging: O Pandas agora manda None (NULL) real, então o SQL não precisa de CAST
+            df_base_load.to_sql("stg_base_csv_temp", engine, schema=schema, if_exists='replace', index=False)
 
-        sql_base = f"""
-        CREATE TABLE IF NOT EXISTS "{schema}"."dim_colaboradores_base" (
-            colaborador_sk SERIAL PRIMARY KEY,
-            nome_colaborador VARCHAR(255) NOT NULL,
-            cpf VARCHAR(20) UNIQUE NOT NULL,
-            data_admissao_csv DATE, data_demissao_csv DATE,
-            situacao_csv VARCHAR(100), departamento_csv VARCHAR(255), cargo_csv VARCHAR(255)
-        );
-        INSERT INTO "{schema}"."dim_colaboradores_base" (colaborador_sk, nome_colaborador, cpf)
-        VALUES (0, 'Desconhecido', 'N/A') ON CONFLICT (colaborador_sk) DO NOTHING;
+            sql_base = f"""
+            CREATE TABLE IF NOT EXISTS "{schema}"."dim_colaboradores_base" (
+                colaborador_sk SERIAL PRIMARY KEY,
+                nome_colaborador VARCHAR(255) NOT NULL,
+                cpf VARCHAR(20) UNIQUE NOT NULL,
+                data_admissao_csv DATE, data_demissao_csv DATE,
+                situacao_csv VARCHAR(100), departamento_csv VARCHAR(255), cargo_csv VARCHAR(255)
+            );
+            INSERT INTO "{schema}"."dim_colaboradores_base" (colaborador_sk, nome_colaborador, cpf)
+            VALUES (0, 'Desconhecido', 'N/A') ON CONFLICT (colaborador_sk) DO NOTHING;
 
-        INSERT INTO "{schema}"."dim_colaboradores_base" (
-            nome_colaborador, cpf, 
-            data_admissao_csv, data_demissao_csv, situacao_csv, 
-            departamento_csv, cargo_csv
-        )
-        SELECT DISTINCT ON (cpf)
-            nome_colaborador, cpf,
-            data_admissao_csv,  -- Inserção direta (Python já tratou)
-            data_demissao_csv, 
-            situacao_csv, departamento_csv, cargo_csv
-        FROM "{schema}"."stg_base_csv_temp"
-        WHERE cpf IS NOT NULL AND cpf != 'N/A'
-        ORDER BY cpf, nome_colaborador DESC
-        ON CONFLICT (cpf) DO UPDATE SET
-            nome_colaborador = EXCLUDED.nome_colaborador,
-            data_admissao_csv = COALESCE(EXCLUDED.data_admissao_csv, "{schema}"."dim_colaboradores_base".data_admissao_csv),
-            data_demissao_csv = COALESCE(EXCLUDED.data_demissao_csv, "{schema}"."dim_colaboradores_base".data_demissao_csv),
-            situacao_csv = COALESCE(EXCLUDED.situacao_csv, "{schema}"."dim_colaboradores_base".situacao_csv),
-            departamento_csv = COALESCE(EXCLUDED.departamento_csv, "{schema}"."dim_colaboradores_base".departamento_csv),
-            cargo_csv = COALESCE(EXCLUDED.cargo_csv, "{schema}"."dim_colaboradores_base".cargo_csv);
+            INSERT INTO "{schema}"."dim_colaboradores_base" (
+                nome_colaborador, cpf, 
+                data_admissao_csv, data_demissao_csv, situacao_csv, 
+                departamento_csv, cargo_csv
+            )
+            SELECT DISTINCT ON (cpf)
+                nome_colaborador, cpf,
+                data_admissao_csv,  -- Inserção direta (Python já tratou)
+                data_demissao_csv, 
+                situacao_csv, departamento_csv, cargo_csv
+            FROM "{schema}"."stg_base_csv_temp"
+            WHERE cpf IS NOT NULL AND cpf != 'N/A'
+            ORDER BY cpf, nome_colaborador DESC
+            ON CONFLICT (cpf) DO UPDATE SET
+                nome_colaborador = EXCLUDED.nome_colaborador,
+                data_admissao_csv = COALESCE(EXCLUDED.data_admissao_csv, "{schema}"."dim_colaboradores_base".data_admissao_csv),
+                data_demissao_csv = COALESCE(EXCLUDED.data_demissao_csv, "{schema}"."dim_colaboradores_base".data_demissao_csv),
+                situacao_csv = COALESCE(EXCLUDED.situacao_csv, "{schema}"."dim_colaboradores_base".situacao_csv),
+                departamento_csv = COALESCE(EXCLUDED.departamento_csv, "{schema}"."dim_colaboradores_base".departamento_csv),
+                cargo_csv = COALESCE(EXCLUDED.cargo_csv, "{schema}"."dim_colaboradores_base".cargo_csv);
 
-        DROP TABLE IF EXISTS "{schema}"."stg_base_csv_temp";
-        """
+            DROP TABLE IF EXISTS "{schema}"."stg_base_csv_temp";
+            """
 
-        with engine.begin() as conn:
-            conn.execute(text(sql_base))
-            print("Dimensão Colaboradores Base atualizada via CSV.")
+            with engine.begin() as conn:
+                conn.execute(text(sql_base))
+            # --- LOG ---
+            logger.info("Dimensão Colaboradores Base atualizada via CSV.")
+
+        except Exception as e:
+            logger.error(f"Erro na carga da Dimensão Base: {e}", exc_info=True)
 
     # --- Parte B: Fato Consolidada ---
     if not df_consol.empty:
-        comps_consol = tuple(df_consol['competencia'].dropna().unique())
-        if comps_consol:
-            df_consol.to_sql("stg_folha_consol", engine, schema=schema, if_exists='replace', index=False,
-                             dtype=SCHEMA_TOTAIS)
+        try:
+            comps_consol = tuple(df_consol['competencia'].dropna().unique())
+            if comps_consol:
+                df_consol.to_sql("stg_folha_consol", engine, schema=schema, if_exists='replace', index=False,
+                                 dtype=SCHEMA_TOTAIS)
 
-            sql_consol = f"""
-                CREATE TABLE IF NOT EXISTS "{schema}"."fato_folha_consolidada" (
-                    fato_folha_id SERIAL PRIMARY KEY,
-                    colaborador_sk INTEGER, competencia DATE,
-                    nome_funcionario_csv VARCHAR(255), centro_de_custo VARCHAR(255), 
-                    cargo_nome_csv VARCHAR(255), cpf_csv VARCHAR(11),
-                    situacao_csv VARCHAR(100), tipo_calculo_csv VARCHAR(100),
-                    salario_contratual NUMERIC(12, 2), total_proventos NUMERIC(12, 2),
-                    total_descontos NUMERIC(12, 2), valor_liquido NUMERIC(12, 2),
-                    base_inss NUMERIC(12, 2), base_fgts NUMERIC(12, 2),
-                    valor_fgts NUMERIC(12, 2), base_irrf NUMERIC(12, 2),
-                    FOREIGN KEY (colaborador_sk) REFERENCES "{schema}"."dim_colaboradores_base"(colaborador_sk)
-                );
+                sql_consol = f"""
+                    CREATE TABLE IF NOT EXISTS "{schema}"."fato_folha_consolidada" (
+                        fato_folha_id SERIAL PRIMARY KEY,
+                        colaborador_sk INTEGER, competencia DATE,
+                        nome_funcionario_csv VARCHAR(255), centro_de_custo VARCHAR(255), 
+                        cargo_nome_csv VARCHAR(255), cpf_csv VARCHAR(11),
+                        situacao_csv VARCHAR(100), tipo_calculo_csv VARCHAR(100),
+                        salario_contratual NUMERIC(12, 2), total_proventos NUMERIC(12, 2),
+                        total_descontos NUMERIC(12, 2), valor_liquido NUMERIC(12, 2),
+                        base_inss NUMERIC(12, 2), base_fgts NUMERIC(12, 2),
+                        valor_fgts NUMERIC(12, 2), base_irrf NUMERIC(12, 2),
+                        FOREIGN KEY (colaborador_sk) REFERENCES "{schema}"."dim_colaboradores_base"(colaborador_sk)
+                    );
 
-                DELETE FROM "{schema}"."fato_folha_consolidada" WHERE competencia IN :comps;
+                    DELETE FROM "{schema}"."fato_folha_consolidada" WHERE competencia IN :comps;
 
-                INSERT INTO "{schema}"."fato_folha_consolidada" (
-                    colaborador_sk, competencia, nome_funcionario_csv, centro_de_custo, 
-                    cargo_nome_csv, cpf_csv, situacao_csv, tipo_calculo_csv,
-                    salario_contratual, total_proventos, total_descontos, valor_liquido,
-                    base_inss, base_fgts, valor_fgts, base_irrf
-                )
-                SELECT
-                    COALESCE(base.colaborador_sk, 0), 
-                    stg.competencia, 
-                    stg.nome_funcionario, stg.departamento,
-                    stg.cargo, stg.cpf, stg.situacao, stg.tipo_calculo,
-                    stg.salario_contratual, stg.total_proventos, stg.total_descontos, stg.valor_liquido,
-                    stg.base_inss, stg.base_fgts, stg.valor_fgts, stg.base_irrf
-                FROM "{schema}"."stg_folha_consol" stg
-                LEFT JOIN "{schema}"."dim_colaboradores_base" base ON stg.cpf = base.cpf;
-            """
-            with engine.begin() as conn:
-                conn.execute(text(sql_consol), {'comps': comps_consol})
-            print("Fato Consolidada carregada.")
+                    INSERT INTO "{schema}"."fato_folha_consolidada" (
+                        colaborador_sk, competencia, nome_funcionario_csv, centro_de_custo, 
+                        cargo_nome_csv, cpf_csv, situacao_csv, tipo_calculo_csv,
+                        salario_contratual, total_proventos, total_descontos, valor_liquido,
+                        base_inss, base_fgts, valor_fgts, base_irrf
+                    )
+                    SELECT
+                        COALESCE(base.colaborador_sk, 0), 
+                        stg.competencia, 
+                        stg.nome_funcionario, stg.departamento,
+                        stg.cargo, stg.cpf, stg.situacao, stg.tipo_calculo,
+                        stg.salario_contratual, stg.total_proventos, stg.total_descontos, stg.valor_liquido,
+                        stg.base_inss, stg.base_fgts, stg.valor_fgts, stg.base_irrf
+                    FROM "{schema}"."stg_folha_consol" stg
+                    LEFT JOIN "{schema}"."dim_colaboradores_base" base ON stg.cpf = base.cpf;
+                """
+                with engine.begin() as conn:
+                    conn.execute(text(sql_consol), {'comps': comps_consol})
+                # --- LOG ---
+                logger.info("Fato Consolidada carregada com sucesso.")
+        except Exception as e:
+            logger.error(f"Erro na carga da Fato Consolidada: {e}", exc_info=True)
 
     # --- Parte C: Fato Detalhada ---
     if not df_detalhe.empty:
-        comps_det = tuple(df_detalhe['competencia'].dropna().unique())
-        if comps_det:
-            df_detalhe.to_sql("stg_folha_detalhe", engine, schema=schema, if_exists='replace', index=False,
-                              dtype=SCHEMA_RUBRICAS)
+        try:
+            comps_det = tuple(df_detalhe['competencia'].dropna().unique())
+            if comps_det:
+                df_detalhe.to_sql("stg_folha_detalhe", engine, schema=schema, if_exists='replace', index=False,
+                                  dtype=SCHEMA_RUBRICAS)
 
-            sql_detalhe = f"""
-                CREATE TABLE IF NOT EXISTS "{schema}"."fato_folha_detalhada" (
-                    fato_rubrica_id SERIAL PRIMARY KEY,
-                    colaborador_sk INTEGER, competencia DATE,
-                    nome_funcionario_csv VARCHAR(255), centro_de_custo VARCHAR(255), cpf_csv VARCHAR(11),
-                    situacao_csv VARCHAR(100), tipo_calculo_csv VARCHAR(100),
-                    codigo_rubrica VARCHAR(100), nome_rubrica VARCHAR(255), tipo_rubrica VARCHAR(100),
-                    valor_rubrica NUMERIC(12, 2),
-                    FOREIGN KEY (colaborador_sk) REFERENCES "{schema}"."dim_colaboradores_base"(colaborador_sk)
-                );
+                sql_detalhe = f"""
+                    CREATE TABLE IF NOT EXISTS "{schema}"."fato_folha_detalhada" (
+                        fato_rubrica_id SERIAL PRIMARY KEY,
+                        colaborador_sk INTEGER, competencia DATE,
+                        nome_funcionario_csv VARCHAR(255), centro_de_custo VARCHAR(255), cpf_csv VARCHAR(11),
+                        situacao_csv VARCHAR(100), tipo_calculo_csv VARCHAR(100),
+                        codigo_rubrica VARCHAR(100), nome_rubrica VARCHAR(255), tipo_rubrica VARCHAR(100),
+                        valor_rubrica NUMERIC(12, 2),
+                        FOREIGN KEY (colaborador_sk) REFERENCES "{schema}"."dim_colaboradores_base"(colaborador_sk)
+                    );
 
-                DELETE FROM "{schema}"."fato_folha_detalhada" WHERE competencia IN :comps;
+                    DELETE FROM "{schema}"."fato_folha_detalhada" WHERE competencia IN :comps;
 
-                INSERT INTO "{schema}"."fato_folha_detalhada" (
-                    colaborador_sk, competencia, nome_funcionario_csv, centro_de_custo, cpf_csv,
-                    situacao_csv, tipo_calculo_csv, codigo_rubrica, nome_rubrica, tipo_rubrica, valor_rubrica
-                )
-                SELECT
-                    COALESCE(base.colaborador_sk, 0), 
-                    stg.competencia, 
-                    stg.nome_funcionario, stg.departamento, stg.cpf,
-                    stg.situacao, stg.tipo_calculo, stg.codigo_rubrica, stg.nome_rubrica, stg.tipo_rubrica, 
-                    stg.valor_rubrica
-                FROM "{schema}"."stg_folha_detalhe" stg
-                LEFT JOIN "{schema}"."dim_colaboradores_base" base ON stg.cpf = base.cpf;
-            """
-            with engine.begin() as conn:
-                conn.execute(text(sql_detalhe), {'comps': comps_det})
-            print("Fato Detalhada carregada.")
+                    INSERT INTO "{schema}"."fato_folha_detalhada" (
+                        colaborador_sk, competencia, nome_funcionario_csv, centro_de_custo, cpf_csv,
+                        situacao_csv, tipo_calculo_csv, codigo_rubrica, nome_rubrica, tipo_rubrica, valor_rubrica
+                    )
+                    SELECT
+                        COALESCE(base.colaborador_sk, 0), 
+                        stg.competencia, 
+                        stg.nome_funcionario, stg.departamento, stg.cpf,
+                        stg.situacao, stg.tipo_calculo, stg.codigo_rubrica, stg.nome_rubrica, stg.tipo_rubrica, 
+                        stg.valor_rubrica
+                    FROM "{schema}"."stg_folha_detalhe" stg
+                    LEFT JOIN "{schema}"."dim_colaboradores_base" base ON stg.cpf = base.cpf;
+                """
+                with engine.begin() as conn:
+                    conn.execute(text(sql_detalhe), {'comps': comps_det})
+                # --- LOG ---
+                logger.info("Fato Detalhada carregada com sucesso.")
+        except Exception as e:
+            logger.error(f"Erro na carga da Fato Detalhada: {e}", exc_info=True)
 
 
 # --------------------------------------------------------------------------------
@@ -217,7 +248,8 @@ def carregar_fatos_folha(df_consol, df_detalhe, engine, schema):
 # --------------------------------------------------------------------------------
 def carregar_dados_api(df_staging, df_beneficios, engine, schema):
     if df_staging.empty:
-        print("DataFrame de colaboradores vazio. Nada a carregar.")
+        # --- LOG ---
+        logger.warning("DataFrame de colaboradores vazio. Nada a carregar.")
         return
 
     # Garante que os DataFrames tenham as colunas esperadas
@@ -235,11 +267,13 @@ def carregar_dados_api(df_staging, df_beneficios, engine, schema):
 
     try:
         # 1. Carga Staging
-        print(f"Carregando {NOME_TABELA_STAGING}...")
+        # --- LOG ---
+        logger.info(f"Carregando {NOME_TABELA_STAGING}...")
         df_staging.to_sql(NOME_TABELA_STAGING, engine, if_exists='replace', index=False, schema=schema)
 
         if not df_beneficios.empty:
-            print(f"Carregando {NOME_STAGING_BEN}...")
+            # --- LOG ---
+            logger.info(f"Carregando {NOME_STAGING_BEN}...")
             df_beneficios.to_sql(NOME_STAGING_BEN, engine, if_exists='replace', index=False, schema=schema)
 
         sql = f"""
@@ -452,17 +486,21 @@ def carregar_dados_api(df_staging, df_beneficios, engine, schema):
 
         with engine.begin() as conn:
             conn.execute(text(sql))
-        print("Carga API concluída com sucesso.")
+        # --- LOG ---
+        logger.info("Carga API (Colaboradores e Benefícios) concluída com sucesso.")
 
     except Exception as e:
-        print(f"Erro Carga API: {e}")
+        # --- LOG ---
+        logger.error(f"Erro na Carga API: {e}", exc_info=True)
 
 
 # --------------------------------------------------------------------------------
 # PÓS PROCESSAMENTO
 # --------------------------------------------------------------------------------
 def processar_status_transferidos(engine, schema):
-    print("Executando pós-processamento de transferidos...")
+    # --- LOG ---
+    logger.info("Iniciando pós-processamento de transferidos...")
+
     sql = text(f"""
         UPDATE "{schema}".dim_colaboradores_base
         SET situacao_csv = 'Transferido'
@@ -488,6 +526,8 @@ def processar_status_transferidos(engine, schema):
     try:
         with engine.begin() as conn:
             conn.execute(sql)
-        print("Status 'Transferido' processado.")
+        # --- LOG ---
+        logger.info("Status 'Transferido' processado com sucesso.")
     except Exception as e:
-        print(f"Erro Transferidos: {e}")
+        # --- LOG ---
+        logger.error(f"Erro no pós-processamento de transferidos: {e}", exc_info=True)
