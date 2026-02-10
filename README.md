@@ -46,7 +46,7 @@ config:
 graph LR
     %% --- Fontes ---
     subgraph Sources ["1. Fontes de Dados"]
-        FTP["☁️ Servidor FTP<br/>(Holerites/Férias)"]
+        FTP["☁️ Servidor FTP<br/>(Arquivos FOPAG (PDF)"]
         API["⚡ API Sólides<br/>(Dados Cadastrais)"]
     end
 
