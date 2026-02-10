@@ -243,19 +243,21 @@ def carregar_fatos_folha(df_consol, df_detalhe, engine, schema):
             logger.error(f"Erro na carga da Fato Detalhada: {e}", exc_info=True)
 
 
-# --------------------------------------------------------------------------------
-# CARGA API (COLABORADORES + BENEFÍCIOS) - UPSERT COMPLETO
-# --------------------------------------------------------------------------------
-def carregar_dados_api(df_staging, df_beneficios, engine, schema):
+# -----------------------------------------------------------------------------
+# FUNÇÃO UNIFICADA E CORRIGIDA (COLABORADORES + BENEFÍCIOS + DEPENDENTES)
+# -----------------------------------------------------------------------------
+def carregar_dados_api(df_staging, df_beneficios, df_dependentes, engine, schema):
+    """
+    Carga UNIFICADA de Colaboradores, Benefícios e Dependentes.
+    CORREÇÃO: Não deleta a staging_colaboradores ao final, pois ela é usada no pós-processamento.
+    """
     if df_staging.empty:
-        # --- LOG ---
         logger.warning("DataFrame de colaboradores vazio. Nada a carregar.")
         return
 
-    # Garante que os DataFrames tenham as colunas esperadas
+    # --- 1. PREPARAÇÃO DOS DATAFRAMES ---
     df_staging['cpf'] = df_staging['cpf'].astype(str).replace(['nan', 'None'], None)
 
-    # Helper SQL para tratamento numérico seguro
     def to_num(col):
         return f"CAST(NULLIF(REGEXP_REPLACE(CAST({col} AS TEXT), '[^0-9.-]', '', 'g'), '') AS NUMERIC)"
 
@@ -264,20 +266,27 @@ def carregar_dados_api(df_staging, df_beneficios, engine, schema):
     NOME_TABELA_STAGING = "staging_colaboradores"
     NOME_STAGING_BEN = "staging_beneficios_api"
     NOME_FATO_BEN = "fato_beneficios_api"
+    NOME_STAGING_DEP = "staging_dependentes_api"
+    NOME_DIM_DEP = "dim_dependentes"
 
     try:
-        # 1. Carga Staging
-        # --- LOG ---
+        # --- 2. CARGA DAS TABELAS STAGING (Pandas -> Banco) ---
         logger.info(f"Carregando {NOME_TABELA_STAGING}...")
         df_staging.to_sql(NOME_TABELA_STAGING, engine, if_exists='replace', index=False, schema=schema)
 
         if not df_beneficios.empty:
-            # --- LOG ---
             logger.info(f"Carregando {NOME_STAGING_BEN}...")
             df_beneficios.to_sql(NOME_STAGING_BEN, engine, if_exists='replace', index=False, schema=schema)
 
+        if not df_dependentes.empty:
+            logger.info(f"Carregando {NOME_STAGING_DEP}...")
+            df_dependentes.to_sql(NOME_STAGING_DEP, engine, if_exists='replace', index=False, schema=schema)
+
+        # --- 3. EXECUÇÃO DO SQL COMPLEXO ---
         sql = f"""
-        -- 2. Base
+        -- ====================================================================
+        -- ETAPA A: DIMENSÃO BASE
+        -- ====================================================================
         CREATE TABLE IF NOT EXISTS "{schema}".{NOME_TABELA_BASE} (
             colaborador_sk SERIAL PRIMARY KEY, nome_colaborador VARCHAR(255), cpf VARCHAR(20) UNIQUE,
             data_admissao_csv DATE, data_demissao_csv DATE, situacao_csv VARCHAR(100),
@@ -293,7 +302,9 @@ def carregar_dados_api(df_staging, df_beneficios, engine, schema):
         ORDER BY stg.cpf, stg.colaborador_id_solides DESC 
         ON CONFLICT (cpf) DO UPDATE SET nome_colaborador = EXCLUDED.nome_colaborador;
 
-        -- 3. Dimensão Rica
+        -- ====================================================================
+        -- ETAPA B: DIMENSÃO RICA
+        -- ====================================================================
         CREATE TABLE IF NOT EXISTS "{schema}".{NOME_TABELA_RICA} (
             colaborador_sk INTEGER PRIMARY KEY, colaborador_id_solides INTEGER UNIQUE NOT NULL, 
             cpf VARCHAR(11), nome_completo VARCHAR(255),
@@ -301,7 +312,7 @@ def carregar_dados_api(df_staging, df_beneficios, engine, schema):
             FOREIGN KEY (colaborador_sk) REFERENCES "{schema}".{NOME_TABELA_BASE}(colaborador_sk)
         );
 
-        -- (DDL) ALTER TABLE MASSIVO - Garante que todas as colunas existam
+        -- Garante colunas
         ALTER TABLE "{schema}".{NOME_TABELA_RICA}
             ADD COLUMN IF NOT EXISTS matricula VARCHAR(100),
             ADD COLUMN IF NOT EXISTS email_corporativo VARCHAR(255),
@@ -309,12 +320,12 @@ def carregar_dados_api(df_staging, df_beneficios, engine, schema):
             ADD COLUMN IF NOT EXISTS data_nascimento DATE,
             ADD COLUMN IF NOT EXISTS genero VARCHAR(50),
             ADD COLUMN IF NOT EXISTS estado_civil VARCHAR(50),
-            ADD COLUMN IF NOT EXISTS saudacao VARCHAR(50),                  -- <--- ADICIONADO
+            ADD COLUMN IF NOT EXISTS saudacao VARCHAR(50),
             ADD COLUMN IF NOT EXISTS nacionalidade VARCHAR(100),
-            ADD COLUMN IF NOT EXISTS tipo_necessidade_especial VARCHAR(100), -- <--- ADICIONADO
+            ADD COLUMN IF NOT EXISTS tipo_necessidade_especial VARCHAR(100),
             ADD COLUMN IF NOT EXISTS naturalidade VARCHAR(100),
-            ADD COLUMN IF NOT EXISTS nome_pai VARCHAR(255),                 -- <--- ADICIONADO
-            ADD COLUMN IF NOT EXISTS nome_mae VARCHAR(255),                 -- <--- ADICIONADO
+            ADD COLUMN IF NOT EXISTS nome_pai VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS nome_mae VARCHAR(255),
             ADD COLUMN IF NOT EXISTS pcd BOOLEAN,
             ADD COLUMN IF NOT EXISTS data_admissao DATE, 
             ADD COLUMN IF NOT EXISTS data_demissao DATE, 
@@ -368,7 +379,7 @@ def carregar_dados_api(df_staging, df_beneficios, engine, schema):
             ADD COLUMN IF NOT EXISTS banco_agencia VARCHAR(50),
             ADD COLUMN IF NOT EXISTS banco_conta VARCHAR(50);
 
-        -- 4. UPSERT MASSIVO
+        -- UPSERT MASSIVO
         INSERT INTO "{schema}".{NOME_TABELA_RICA} (
             colaborador_sk, colaborador_id_solides, cpf, nome_completo, matricula, 
             email_corporativo, email_pessoal, data_nascimento, genero, estado_civil,
@@ -409,7 +420,6 @@ def carregar_dados_api(df_staging, df_beneficios, engine, schema):
         FROM "{schema}".{NOME_TABELA_STAGING} AS stg
         JOIN "{schema}".{NOME_TABELA_BASE} AS base ON stg.cpf = base.cpf
         WHERE stg.colaborador_id_solides IS NOT NULL
-
         ON CONFLICT (colaborador_id_solides) DO UPDATE SET
             nome_completo = EXCLUDED.nome_completo,
             cpf = EXCLUDED.cpf,
@@ -459,7 +469,9 @@ def carregar_dados_api(df_staging, df_beneficios, engine, schema):
             banco_conta = EXCLUDED.banco_conta,
             data_ultima_atualizacao = current_timestamp;
 
-        -- 5. FATO BENEFICIOS
+        -- ====================================================================
+        -- ETAPA C: FATO BENEFICIOS
+        -- ====================================================================
         """ + (f"""
         CREATE TABLE IF NOT EXISTS "{schema}".{NOME_FATO_BEN} (
             beneficio_id SERIAL PRIMARY KEY, colaborador_sk INTEGER,
@@ -482,18 +494,64 @@ def carregar_dados_api(df_staging, df_beneficios, engine, schema):
         JOIN "{schema}".{NOME_TABELA_STAGING} stg_colab ON stg.colaborador_id_solides = stg_colab.colaborador_id_solides
         JOIN "{schema}".{NOME_TABELA_BASE} base ON stg_colab.cpf = base.cpf;
         """ if not df_beneficios.empty else "") + f"""
+
+-- ====================================================================
+        -- ETAPA D: DIMENSÃO DEPENDENTES (JOIN POR ID SOLIDES)
+        -- ====================================================================
+        CREATE TABLE IF NOT EXISTS "{schema}".{NOME_DIM_DEP} (
+            dependente_id SERIAL PRIMARY KEY,
+            colaborador_sk INTEGER NOT NULL,
+            nome_dependente VARCHAR(255),
+            cpf_dependente VARCHAR(20),
+            rg_dependente VARCHAR(20),
+            data_nascimento DATE,
+            parentesco VARCHAR(50),
+            data_carga TIMESTAMP DEFAULT current_timestamp,
+            CONSTRAINT fk_colaborador_dep FOREIGN KEY (colaborador_sk) 
+                REFERENCES "{schema}".{NOME_TABELA_BASE} (colaborador_sk)
+        );
+        CREATE INDEX IF NOT EXISTS idx_dep_colab_sk ON "{schema}".{NOME_DIM_DEP} (colaborador_sk);
+
+        """ + (f"""
+        -- 1. DELETE ESCOPADO
+        -- Remove dependentes dos colaboradores que vieram nessa carga (usando ID Solides)
+        DELETE FROM "{schema}".{NOME_DIM_DEP}
+        WHERE colaborador_sk IN (
+            SELECT dc.colaborador_sk
+            FROM "{schema}".{NOME_STAGING_DEP} stg
+            INNER JOIN "{schema}".{NOME_TABELA_RICA} dc 
+                ON stg.colaborador_id_solides = dc.colaborador_id_solides
+        );
+
+        -- 2. INSERT
+        INSERT INTO "{schema}".{NOME_DIM_DEP} (
+            colaborador_sk, nome_dependente, cpf_dependente, rg_dependente, data_nascimento, parentesco
+        )
+        SELECT 
+            dc.colaborador_sk, -- Pegamos o SK da dimensão rica
+            stg.nome_dependente,
+            stg.cpf_dependente,
+            stg.rg_dependente,
+            CAST(stg.data_nascimento AS DATE),
+            stg.parentesco
+        FROM "{schema}".{NOME_STAGING_DEP} stg
+        INNER JOIN "{schema}".{NOME_TABELA_RICA} dc 
+             ON stg.colaborador_id_solides = dc.colaborador_id_solides; -- <--- JOIN CORRETO AQUI
+        """ if not df_dependentes.empty else "") + f"""
+
+        -- LIMPEZA FINAL
+        DROP TABLE IF EXISTS "{schema}".{NOME_STAGING_BEN};
+        DROP TABLE IF EXISTS "{schema}".{NOME_STAGING_DEP};
         """
 
         with engine.begin() as conn:
             conn.execute(text(sql))
-        # --- LOG ---
-        logger.info("Carga API (Colaboradores e Benefícios) concluída com sucesso.")
+
+        logger.info("Carga UNIFICADA da API concluída com sucesso!")
 
     except Exception as e:
-        # --- LOG ---
         logger.error(f"Erro na Carga API: {e}", exc_info=True)
-
-
+        raise e
 # --------------------------------------------------------------------------------
 # PÓS PROCESSAMENTO
 # --------------------------------------------------------------------------------
@@ -531,3 +589,35 @@ def processar_status_transferidos(engine, schema):
     except Exception as e:
         # --- LOG ---
         logger.error(f"Erro no pós-processamento de transferidos: {e}", exc_info=True)
+
+
+def limpar_tabelas_staging(engine, schema):
+    """
+    Remove todas as tabelas temporárias (staging/stg) criadas durante o processo.
+    Deve ser chamada APENAS no final do pipeline.
+    """
+    logger.info("--- Iniciando Faxina: Removendo tabelas de Staging ---")
+
+    # Lista de todas as tabelas temporárias que queremos apagar
+    tabelas_para_remover = [
+        "staging_colaboradores",
+        "staging_beneficios_api",
+        "staging_dependentes_api",
+        "stg_folha_consol",
+        "stg_folha_detalhe",
+        "stg_base_csv_temp",
+        "stg_dependentes_temp",
+        "dim_colaboradores_base"
+    ]
+
+    try:
+        with engine.begin() as conn:
+            for tabela in tabelas_para_remover:
+                # O comando DROP TABLE IF EXISTS não dá erro se a tabela já sumiu
+                conn.execute(text(f'DROP TABLE IF EXISTS "{schema}"."{tabela}" CASCADE'))
+
+        logger.info("Faxina concluída! Banco de dados limpo.")
+
+    except Exception as e:
+        # Se der erro na limpeza, não é crítico para o negócio, apenas logamos warning
+        logger.warning(f"Erro ao limpar tabelas de staging (não afeta os dados): {e}")

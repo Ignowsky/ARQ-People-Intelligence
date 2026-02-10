@@ -19,30 +19,22 @@ MAX_WORKERS_PDF = os.cpu_count() or 4
 
 
 # -----------------------------------------------------------------------------
-# 0. CLASSE FTP CUSTOMIZADA (CORREÇÃO FINAL DE INICIALIZAÇÃO)
+# 0. CLASSE FTP CUSTOMIZADA (COM DEBUG SSL E CIPHERS)
 # -----------------------------------------------------------------------------
 class FTPS_Session(ftplib.FTP_TLS):
-    """
-    Classe wrapper para corrigir o erro 'SSL: SHUTDOWN_WHILE_IN_INIT'.
-    Ela força o canal de dados a reutilizar a sessão SSL do canal de controle.
-    """
-
     def __init__(self, host='', user='', passwd='', acct='', keyfile=None, certfile=None, timeout=60):
-        # 1. Criação do Contexto SSL Permissivo
         context = ssl.create_default_context()
         context.check_hostname = False
         context.verify_mode = ssl.CERT_NONE
-        context.set_ciphers('DEFAULT:@SECLEVEL=1')
+        try:
+            context.set_ciphers('DEFAULT:@SECLEVEL=1')
+        except:
+            context.set_ciphers('DEFAULT')
 
-        # 2. Inicialização do Pai (CORREÇÃO AQUI)
-        # Passamos apenas o host, o contexto e o timeout.
-        # Usuário e senha serão tratados no método .login() que chamamos depois.
         super().__init__(host=host, context=context, timeout=timeout)
 
     def ntransfercmd(self, cmd, rest=None):
         conn, size = ftplib.FTP.ntransfercmd(self, cmd, rest)
-
-        # O PULO DO GATO: Reutilização de Sessão SSL
         if self._prot_p:
             conn = self.context.wrap_socket(conn,
                                             server_hostname=self.host,
@@ -51,33 +43,33 @@ class FTPS_Session(ftplib.FTP_TLS):
 
 
 # -----------------------------------------------------------------------------
-# 1. FUNÇÕES DE INGESTÃO FTP
+# 1. FUNÇÕES DE INGESTÃO FTP (COM SUPORTE A PLAIN FTP)
 # -----------------------------------------------------------------------------
 
-def _worker_ftp_baixar_deletar(file_name, host, user, passwd, remote_dir, local_dir):
-    """
-    Worker seguro (FTPS com Session Reuse): Conecta, baixa e deleta.
-    """
+def _worker_ftp_baixar_deletar(file_name, host, user, passwd, remote_dir, local_dir, use_tls=True):
     ftp = None
     try:
-        # Instancia a classe, mas NÃO passa usuário/senha no init para evitar o TypeError
-        ftp = FTPS_Session(host)
+        # DECISÃO: TLS ou PLAIN?
+        if use_tls:
+            ftp = FTPS_Session(host)
+            ftp.auth()  # Explicit TLS
+        else:
+            ftp = ftplib.FTP(host)  # Plain FTP (Porta 21 sem SSL)
 
-        # Faz o login explicitamente aqui
-        ftp.login(user, passwd)
+        # Login
+        ftp.login(user.strip(), passwd.strip())
 
-        ftp.prot_p()  # Criptografa o canal de dados
+        # Proteção de dados só existe no modo TLS
+        if use_tls:
+            ftp.prot_p()
+
         ftp.cwd(remote_dir)
-
         local_path = os.path.join(local_dir, file_name)
 
-        # 1. Baixar
         with open(local_path, 'wb') as f:
             ftp.retrbinary('RETR ' + file_name, f.write)
 
-        # 2. Deletar do FTP (Só executa se o download terminar sem erro)
         ftp.delete(file_name)
-
         ftp.quit()
         return True, file_name
     except Exception as e:
@@ -90,44 +82,56 @@ def _worker_ftp_baixar_deletar(file_name, host, user, passwd, remote_dir, local_
 
 
 def ingestar_ftp_paralelo(host, user, passwd, remote_dir, local_dir):
-    """
-    Lista arquivos via FTPS Customizado e dispara workers.
-    """
-    logger.info(f"--- [FTP] Conectando em {host} (Modo Seguro com Reuso de Sessão) ---")
+    # LÊ A CONFIG DO ENV (Padrão é True/Seguro)
+    use_tls_env = os.getenv("FTP_USE_TLS", "True").lower() == "true"
+    modo_str = "SEGURO (FTPS)" if use_tls_env else "LEGADO (PLAIN FTP)"
+
+    logger.info(f"--- [FTP] Conectando em {host} | Modo: {modo_str} ---")
+
+    user_clean = str(user).strip()
+    pass_clean = str(passwd).strip()
 
     if not os.path.exists(local_dir):
         os.makedirs(local_dir)
 
     arquivos_pdf = []
 
-    # 1. Listagem inicial (Thread Principal)
+    # 1. LISTAGEM INICIAL
     try:
-        ftp_main = FTPS_Session(host)
-        ftp_main.login(user, passwd)
-        ftp_main.prot_p()
-        ftp_main.cwd(remote_dir)
+        if use_tls_env:
+            ftp_main = FTPS_Session(host)
+            ftp_main.auth()
+        else:
+            ftp_main = ftplib.FTP(host)
 
+        ftp_main.login(user_clean, pass_clean)
+
+        if use_tls_env:
+            ftp_main.prot_p()
+
+        ftp_main.cwd(remote_dir)
         lista_arquivos = ftp_main.nlst()
         arquivos_pdf = [f for f in lista_arquivos if f.lower().endswith('.pdf')]
 
         ftp_main.quit()
+        logger.info(f"Listagem OK. Encontrados {len(arquivos_pdf)} arquivos.")
+
     except Exception as e:
-        logger.error(f"Erro CRÍTICO no FTP: {e}", exc_info=True)
+        logger.error(f"Erro CRÍTICO no FTP ({modo_str}): {e}")
         return
 
     total_arquivos = len(arquivos_pdf)
-
     if total_arquivos == 0:
-        logger.info("Nenhum arquivo PDF encontrado no diretório remoto.")
         return
 
-    logger.info(f"Encontrados {total_arquivos} arquivos. Iniciando download paralelo...")
-
-    # 2. Processamento Paralelo
+    # 2. DOWNLOAD PARALELO
+    logger.info(f"Iniciando download paralelo...")
     sucessos = 0
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS_FTP) as executor:
+        # Passamos a flag use_tls para os workers também
         futures = {
-            executor.submit(_worker_ftp_baixar_deletar, arquivo, host, user, passwd, remote_dir, local_dir): arquivo
+            executor.submit(_worker_ftp_baixar_deletar, arquivo, host, user_clean, pass_clean, remote_dir, local_dir,
+                            use_tls_env): arquivo
             for arquivo in arquivos_pdf
         }
 
@@ -136,9 +140,9 @@ def ingestar_ftp_paralelo(host, user, passwd, remote_dir, local_dir):
             if status:
                 sucessos += 1
             else:
-                logger.error(f"Falha no download: {msg}")
+                logger.error(f"Falha worker: {msg}")
 
-    logger.info(f"--- [FTP] Processo concluído. Baixados e removidos: {sucessos}/{total_arquivos} ---")
+    logger.info(f"--- [FTP] Concluído: {sucessos}/{total_arquivos} ---")
 # -----------------------------------------------------------------------------
 # 1. FUNÇÕES AUXILIARES DE EXTRAÇÃO (PDF)
 # -----------------------------------------------------------------------------

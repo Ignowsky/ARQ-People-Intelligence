@@ -329,3 +329,67 @@ def transformar_beneficios_api(lista_dicts_api):
     logger.info(f"Transformação de Benefícios concluída. {len(df)} registros.")
 
     return df
+
+def transformar_dependentes_api(dados_brutos):
+    """
+    Extrai a lista de dependentes e prepara a carga via staging.
+
+    return: pd.DataFrame
+    """
+    logger.info("Transformando dados de Dependentes e prepara a carga via staging...")
+
+    def clean_digits(val):
+        if pd.isna(val) or val is None: return None
+        return ''.join(filter(str.isdigit, str(val)))
+
+    if not dados_brutos:
+        return pd.DataFrame()
+
+        # --- DEBUG ESPIÃO ---
+        # Vai mostrar no terminal as chaves do primeiro colaborador para conferirmos
+    primeiro = dados_brutos[0]
+    logger.info(f"DEBUG JSON KEYS: {list(primeiro.keys())}")
+
+    # Verifica se a chave existe (Case Sensitive)
+    if 'dependents' in primeiro:
+        logger.info(f"DEBUG DEPENDENTS DATA (Exemplo): {primeiro['dependents']}")
+    else:
+        logger.warning("ATENÇÃO: A chave 'dependents' NÃO foi encontrada no JSON da API.")
+    # --------------------
+
+    lista_dependentes = []
+
+    for colab in dados_brutos:
+        colab_id = colab.get('id')
+
+        # Tenta pegar 'dependents' ou 'dependentes' (caso venha em PT-BR)
+        dependentes = colab.get('dependents',[])
+
+        if isinstance(dependentes, list):
+            for dep in dependentes:
+                lista_dependentes.append({
+                    'colaborador_id_solides': colab_id,
+                    'nome_dependente': dep.get('name'),
+                    'cpf_dependente': dep.get('IdNumber'),
+                    'rg_dependente': dep.get('rg'),
+                    'data_nascimento': dep.get('birthDate'),
+                    'parentesco': dep.get('relationship')
+                })
+
+    df = pd.DataFrame(lista_dependentes)
+
+    if df.empty:
+        return pd.DataFrame(columns=['cpf_titular', 'nome_dependente', 'cpf_dependente', 'rg_dependente', 'data_nascimento', 'parentesco'])
+
+    # Tratamento dos dados
+    # (Adicione aqui todos os documentos para limpar de uma vez)
+    cols_numericas = ['cpf_titular', 'cpf_dependente', 'rg_dependente']
+    # Aplica a limpeza (remove pontos, traços, letras)
+    for col in cols_numericas:
+        if col in df.columns:
+            df[col] = df[col].apply(clean_digits)
+
+    if 'data_nascimento' in df.columns:
+        df['data_nascimento'] = df['data_nascimento'].apply(parse_date_seguro)
+
+    return df

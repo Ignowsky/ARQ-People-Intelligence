@@ -10,14 +10,16 @@ from src.extract import processar_pdfs, extrair_api_solides, ingestar_ftp_parale
 from src.transform import (
     transformar_dados_pdf,
     transformar_dados_api,
-    transformar_beneficios_api
+    transformar_beneficios_api,
+    transformar_dependentes_api
 )
 from src.load import (
     garantir_schema_banco,
     carregar_dim_calendario,
     carregar_dados_api,
     carregar_fatos_folha,
-    processar_status_transferidos
+    processar_status_transferidos,
+    limpar_tabelas_staging # <---- Adicionado
 )
 from src.utils import limpar_diretorio_local  # <--- NOVO IMPORT
 from src.logger import setup_logger
@@ -47,7 +49,7 @@ def run_pipeline():
     ftp_host = os.getenv("FTP_HOST")
     ftp_user = os.getenv("FTP_USER")
     ftp_pass = os.getenv("FTP_PASS")
-    ftp_dir = os.getenv("FTP_DIR")
+    ftp_dir = os.getenv("FTP_DIR_ENTRADA")
 
     if ftp_host and ftp_user:
         # Baixa os arquivos e remove do servidor
@@ -116,11 +118,18 @@ def run_pipeline():
 
         if dados_brutos_api:
             logger.info("Transformando dados da API...")
+            # [NOVO] - Transformações dos Dataframes
             df_colaboradores = transformar_dados_api(dados_brutos_api)
             df_beneficios = transformar_beneficios_api(dados_brutos_api)
+            df_dependentes = transformar_dependentes_api(dados_brutos_api)
 
+            # [NOVO] - Carga unificanda de todos os Dataframes
             logger.info("Carregando dados da API no Banco...")
-            carregar_dados_api(df_colaboradores, df_beneficios, engine, schema)
+            carregar_dados_api(df_colaboradores,
+                               df_beneficios,
+                               df_dependentes, # <---- Novo dataframe adicionado para termos as informações de dependentes
+                               engine,
+                               schema)
         else:
             logger.warning("A API retornou uma lista vazia de dados brutos.")
     else:
@@ -137,12 +146,14 @@ def run_pipeline():
     # =========================================================================
     logger.info("--- [ETAPA FINAL] Limpeza de Arquivos Locais ---")
     qtd_removida = limpar_diretorio_local(PATH_INPUT, extensao='.pdf')
+    limpar_tabelas_staging(engine, schema)
     logger.info(f"Limpeza concluída: {qtd_removida} arquivos removidos da pasta input.")
 
     # Cálculo do tempo total
     end_time = time.time()
     tempo_total = end_time - start_time
     mins, secs = divmod(tempo_total, 60)
+
 
     logger.info("=======================================================")
     logger.info(f"   PIPELINE FINALIZADO EM {int(mins)}m {int(secs)}s")
