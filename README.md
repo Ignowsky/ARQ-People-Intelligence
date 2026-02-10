@@ -44,45 +44,46 @@ config:
   layout: fixed
 ---
 graph LR
-    %% --- Definição das Fontes ---
+    %% --- Fontes ---
     subgraph Sources ["1. Fontes de Dados"]
-        PDF["📂 input/<br/>PDFs Brutos"]
-        API["☁️ API Sólides<br/>JSON"]
+        FTP["☁️ Servidor FTP<br/>(Holerites/Férias)"]
+        API["⚡ API Sólides<br/>(Dados Cadastrais)"]
     end
 
-    %% --- Núcleo do Pipeline ---
-    subgraph Core ["2. Pipeline Python (src/)"]
+    %% --- Camada de Ingestão e Processamento ---
+    subgraph Engine ["2. Pipeline de Engenharia (Core)"]
         direction TB
-        EXT["extract.py<br/>(OCR/Regex & Requests)"]
-        TRANS["transform.py<br/>(Limpeza & Tipagem)"]
-        UTILS("utils.py<br/>Helpers de Sanitização")
-        LOAD["load.py<br/>(Upsert & Transaction)"]
+        INGEST["extract.ingestar_ftp_paralelo<br/>(15 Workers - FTPS)"]
+        INPUT("📂 Local Staging<br/>(input/)")
+        PDF_PROC["extract.processar_pdfs<br/>(Multiprocessing CPU)"]
+        API_PROC["extract.extrair_api_solides<br/>(Multithreading I/O)"]
+        TRANS["transform.py<br/>(Limpeza e Tipagem)"]
     end
 
-    %% --- Destino ---
-    subgraph Storage ["3. Armazenamento"]
+    %% --- Armazenamento ---
+    subgraph Storage ["3. Data Warehouse"]
         DB[("🗄️ PostgreSQL<br/>Schema FOPAG")]
     end
 
-    BI["📈 Power BI<br/>People Analytics"]
-
-    %% --- Relacionamentos ---
-    PDF -->|Leitura| EXT
-    API -->|Paginação| EXT
+    %% --- Fluxo ---
+    FTP -->|TLS 1.2| INGEST
+    INGEST --> INPUT
+    INPUT --> PDF_PROC
+    API -->|JSON| API_PROC
     
-    EXT -->|Dados Brutos| TRANS
-    TRANS -.->|Usa| UTILS
-    UTILS -.->|Retorna Limpo| TRANS
+    PDF_PROC --> TRANS
+    API_PROC --> TRANS
     
-    TRANS -->|DataFrames| LOAD
-    LOAD -->|Commit| DB
+    TRANS -->|Load| DB
     
-    DB -->|SQL| BI
+    %% --- Limpeza ---
+    DB -.->|Callback Sucesso| CLEAN["🗑️ Limpeza Automática<br/>(Delete Local Files)"]
+    CLEAN -.-> INPUT
 
     %% --- Estilização ---
     style DB fill:#336791,stroke:#fff,stroke-width:2px,color:#fff
-    style API fill:#0078D7,stroke:#fff,stroke-width:2px,color:#fff
-    style UTILS stroke-dasharray: 5 5,fill:#f9f2f4,stroke:#c7254e,color:#c7254e
+    style FTP fill:#2d8c58,stroke:#fff,stroke-width:2px,color:#fff
+    style INGEST stroke-dasharray: 5 5
 ```
 ----
 

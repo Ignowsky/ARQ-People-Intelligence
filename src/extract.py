@@ -1,9 +1,11 @@
 import os
+import ftplib
+import ssl
 import re
-import requests
+import concurrent.futures
 import pdfplumber
+import requests
 import pandas as pd
-import concurrent.futures  # Para Threads (API) e Processos (PDF)
 from .constants import MAPEAMENTO_CODIGOS
 from .utils import limpar_valor_moeda
 from .logger import setup_logger
@@ -11,10 +13,132 @@ from .logger import setup_logger
 logger = setup_logger(__name__)
 
 # Configurações de Concorrência
-MAX_WORKERS_API = 20  # I/O Bound: Pode abusar (Threads)
-MAX_WORKERS_PDF = os.cpu_count() or 4  # CPU Bound: Limitado aos núcleos físicos (Processos)
+MAX_WORKERS_API = 20
+MAX_WORKERS_FTP = 25
+MAX_WORKERS_PDF = os.cpu_count() or 4
 
 
+# -----------------------------------------------------------------------------
+# 0. CLASSE FTP CUSTOMIZADA (CORREÇÃO FINAL DE INICIALIZAÇÃO)
+# -----------------------------------------------------------------------------
+class FTPS_Session(ftplib.FTP_TLS):
+    """
+    Classe wrapper para corrigir o erro 'SSL: SHUTDOWN_WHILE_IN_INIT'.
+    Ela força o canal de dados a reutilizar a sessão SSL do canal de controle.
+    """
+
+    def __init__(self, host='', user='', passwd='', acct='', keyfile=None, certfile=None, timeout=60):
+        # 1. Criação do Contexto SSL Permissivo
+        context = ssl.create_default_context()
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+        context.set_ciphers('DEFAULT:@SECLEVEL=1')
+
+        # 2. Inicialização do Pai (CORREÇÃO AQUI)
+        # Passamos apenas o host, o contexto e o timeout.
+        # Usuário e senha serão tratados no método .login() que chamamos depois.
+        super().__init__(host=host, context=context, timeout=timeout)
+
+    def ntransfercmd(self, cmd, rest=None):
+        conn, size = ftplib.FTP.ntransfercmd(self, cmd, rest)
+
+        # O PULO DO GATO: Reutilização de Sessão SSL
+        if self._prot_p:
+            conn = self.context.wrap_socket(conn,
+                                            server_hostname=self.host,
+                                            session=self.sock.session)
+        return conn, size
+
+
+# -----------------------------------------------------------------------------
+# 1. FUNÇÕES DE INGESTÃO FTP
+# -----------------------------------------------------------------------------
+
+def _worker_ftp_baixar_deletar(file_name, host, user, passwd, remote_dir, local_dir):
+    """
+    Worker seguro (FTPS com Session Reuse): Conecta, baixa e deleta.
+    """
+    ftp = None
+    try:
+        # Instancia a classe, mas NÃO passa usuário/senha no init para evitar o TypeError
+        ftp = FTPS_Session(host)
+
+        # Faz o login explicitamente aqui
+        ftp.login(user, passwd)
+
+        ftp.prot_p()  # Criptografa o canal de dados
+        ftp.cwd(remote_dir)
+
+        local_path = os.path.join(local_dir, file_name)
+
+        # 1. Baixar
+        with open(local_path, 'wb') as f:
+            ftp.retrbinary('RETR ' + file_name, f.write)
+
+        # 2. Deletar do FTP (Só executa se o download terminar sem erro)
+        ftp.delete(file_name)
+
+        ftp.quit()
+        return True, file_name
+    except Exception as e:
+        if ftp:
+            try:
+                ftp.close()
+            except:
+                pass
+        return False, f"{file_name}: {str(e)}"
+
+
+def ingestar_ftp_paralelo(host, user, passwd, remote_dir, local_dir):
+    """
+    Lista arquivos via FTPS Customizado e dispara workers.
+    """
+    logger.info(f"--- [FTP] Conectando em {host} (Modo Seguro com Reuso de Sessão) ---")
+
+    if not os.path.exists(local_dir):
+        os.makedirs(local_dir)
+
+    arquivos_pdf = []
+
+    # 1. Listagem inicial (Thread Principal)
+    try:
+        ftp_main = FTPS_Session(host)
+        ftp_main.login(user, passwd)
+        ftp_main.prot_p()
+        ftp_main.cwd(remote_dir)
+
+        lista_arquivos = ftp_main.nlst()
+        arquivos_pdf = [f for f in lista_arquivos if f.lower().endswith('.pdf')]
+
+        ftp_main.quit()
+    except Exception as e:
+        logger.error(f"Erro CRÍTICO no FTP: {e}", exc_info=True)
+        return
+
+    total_arquivos = len(arquivos_pdf)
+
+    if total_arquivos == 0:
+        logger.info("Nenhum arquivo PDF encontrado no diretório remoto.")
+        return
+
+    logger.info(f"Encontrados {total_arquivos} arquivos. Iniciando download paralelo...")
+
+    # 2. Processamento Paralelo
+    sucessos = 0
+    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS_FTP) as executor:
+        futures = {
+            executor.submit(_worker_ftp_baixar_deletar, arquivo, host, user, passwd, remote_dir, local_dir): arquivo
+            for arquivo in arquivos_pdf
+        }
+
+        for future in concurrent.futures.as_completed(futures):
+            status, msg = future.result()
+            if status:
+                sucessos += 1
+            else:
+                logger.error(f"Falha no download: {msg}")
+
+    logger.info(f"--- [FTP] Processo concluído. Baixados e removidos: {sucessos}/{total_arquivos} ---")
 # -----------------------------------------------------------------------------
 # 1. FUNÇÕES AUXILIARES DE EXTRAÇÃO (PDF)
 # -----------------------------------------------------------------------------

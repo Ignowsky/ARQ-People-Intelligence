@@ -1,12 +1,12 @@
 # main.py
 import os
 import sys
-import time  # <--- NOVO: Para medir a performance
+import time
 from dotenv import load_dotenv
 
 # Imports dos módulos
 from src.database import get_db_engine
-from src.extract import processar_pdfs, extrair_api_solides
+from src.extract import processar_pdfs, extrair_api_solides, ingestar_ftp_paralelo  # <--- NOVO IMPORT
 from src.transform import (
     transformar_dados_pdf,
     transformar_dados_api,
@@ -19,6 +19,7 @@ from src.load import (
     carregar_fatos_folha,
     processar_status_transferidos
 )
+from src.utils import limpar_diretorio_local  # <--- NOVO IMPORT
 from src.logger import setup_logger
 
 # Inicializa o logger principal
@@ -26,7 +27,7 @@ logger = setup_logger("Main_Pipeline")
 
 
 def run_pipeline():
-    start_time = time.time()  # <--- Inicia contagem
+    start_time = time.time()
 
     logger.info("=======================================================")
     logger.info("   INICIANDO PIPELINE DE DADOS - ARQ PEOPLE INTEL")
@@ -40,7 +41,23 @@ def run_pipeline():
     if not os.path.exists(PATH_OUTPUT):
         os.makedirs(PATH_OUTPUT)
 
-    # 1. CONEXÃO COM BANCO
+    # =========================================================================
+    # 0. INGESTÃO FTP (NOVA ETAPA ADICIONADA)
+    # =========================================================================
+    ftp_host = os.getenv("FTP_HOST")
+    ftp_user = os.getenv("FTP_USER")
+    ftp_pass = os.getenv("FTP_PASS")
+    ftp_dir = os.getenv("FTP_DIR")
+
+    if ftp_host and ftp_user:
+        # Baixa os arquivos e remove do servidor
+        ingestar_ftp_paralelo(ftp_host, ftp_user, ftp_pass, ftp_dir, PATH_INPUT)
+    else:
+        logger.warning("[AVISO] Credenciais FTP não configuradas. Usando arquivos locais existentes.")
+
+    # =========================================================================
+    # 1. CONEXÃO COM BANCO (SEU CÓDIGO ORIGINAL)
+    # =========================================================================
     try:
         engine, schema = get_db_engine()
         garantir_schema_banco(engine, schema)
@@ -49,11 +66,15 @@ def run_pipeline():
         logger.critical(f"[ERRO FATAL] Não foi possível conectar ao banco: {e}", exc_info=True)
         sys.exit(1)
 
-    # 2. DIMENSÃO CALENDÁRIO
+    # =========================================================================
+    # 2. DIMENSÃO CALENDÁRIO (SEU CÓDIGO ORIGINAL)
+    # =========================================================================
     logger.info("--- [ETAPA 1] Dimensão Calendário ---")
     carregar_dim_calendario(engine, schema)
 
-    # 3. PIPELINE FOLHA DE PAGAMENTO (PDFs)
+    # =========================================================================
+    # 3. PIPELINE FOLHA DE PAGAMENTO (PDFs) (SEU CÓDIGO ORIGINAL)
+    # =========================================================================
     if os.path.exists(PATH_INPUT):
         logger.info("--- [ETAPA 2] Pipeline Folha de Pagamento (PDFs) ---")
 
@@ -64,7 +85,7 @@ def run_pipeline():
             logger.info("Transformando dados da Folha...")
             df_final_consol, df_final_detalhe = transformar_dados_pdf(df_raw_consol, df_raw_detalhe)
 
-            # Exportação CSV para Auditoria
+            # Exportação CSV para Auditoria (MANTIDA)
             path_csv_consol = os.path.join(PATH_OUTPUT, 'FOPAG_Consolidada_Tratada.csv')
             path_csv_detalhe = os.path.join(PATH_OUTPUT, 'FOPAG_Detalhada_Tratada.csv')
 
@@ -76,7 +97,7 @@ def run_pipeline():
             except Exception as e:
                 logger.error(f"Erro ao gerar CSVs: {e}")
 
-            # Load Banco
+            # Load Banco (MANTIDO)
             logger.info("Carregando Fatos de Folha no Banco...")
             carregar_fatos_folha(df_final_consol, df_final_detalhe, engine, schema)
         else:
@@ -84,12 +105,13 @@ def run_pipeline():
     else:
         logger.error(f"[ERRO] Pasta de input não encontrada: {PATH_INPUT}")
 
-    # 4. PIPELINE API SOLIDES (Agora com Paralelismo Interno)
+    # =========================================================================
+    # 4. PIPELINE API SOLIDES (SEU CÓDIGO ORIGINAL)
+    # =========================================================================
     token_api = os.getenv("SOLIDES_API_TOKEN")
     if token_api:
         logger.info("--- [ETAPA 3] Pipeline API Solides ---")
 
-        # Aqui a mágica do paralelismo acontece dentro do extract
         dados_brutos_api = extrair_api_solides(token_api)
 
         if dados_brutos_api:
@@ -104,9 +126,18 @@ def run_pipeline():
     else:
         logger.warning("[AVISO] Token da API não encontrado no .env. Pulando etapa API.")
 
-    # 5. PÓS PROCESSAMENTO
+    # =========================================================================
+    # 5. PÓS PROCESSAMENTO (SEU CÓDIGO ORIGINAL)
+    # =========================================================================
     logger.info("--- [ETAPA 4] Pós-Processamento ---")
     processar_status_transferidos(engine, schema)
+
+    # =========================================================================
+    # 6. LIMPEZA FINAL (NOVA ETAPA ADICIONADA)
+    # =========================================================================
+    logger.info("--- [ETAPA FINAL] Limpeza de Arquivos Locais ---")
+    qtd_removida = limpar_diretorio_local(PATH_INPUT, extensao='.pdf')
+    logger.info(f"Limpeza concluída: {qtd_removida} arquivos removidos da pasta input.")
 
     # Cálculo do tempo total
     end_time = time.time()

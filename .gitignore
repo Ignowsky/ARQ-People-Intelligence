@@ -12,7 +12,9 @@ __pycache__/
 .env
 cofre/
 *.env
+*.log
 # --- Dados e Arquivos de Entrada/Saída ---
+logs/
 Main/
 input/
 Output/

@@ -125,3 +125,959 @@
 2026-02-09 16:26:54,712 - [INFO] - Main_Pipeline - =======================================================
 2026-02-09 16:26:54,712 - [INFO] - Main_Pipeline -    PIPELINE FINALIZADO EM 0m 27s
 2026-02-09 16:26:54,712 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 21:26:24,695 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 21:26:24,695 - [INFO] - Main_Pipeline -    INICIANDO PIPELINE DE DADOS - ARQ PEOPLE INTEL
+2026-02-09 21:26:24,695 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 21:26:24,921 - [INFO] - src.load - Schema 'FOPAG' verificado/garantido com sucesso.
+2026-02-09 21:26:24,921 - [INFO] - Main_Pipeline - [OK] Conexão com banco estabelecida. Schema: FOPAG
+2026-02-09 21:26:24,922 - [INFO] - Main_Pipeline - --- [ETAPA 1] Dimensão Calendário ---
+2026-02-09 21:26:25,125 - [INFO] - src.load - Dimensão Calendário verificada/atualizada.
+2026-02-09 21:26:25,125 - [INFO] - Main_Pipeline - --- [ETAPA 2] Pipeline Folha de Pagamento (PDFs) ---
+2026-02-09 21:26:25,126 - [INFO] - src.extract - Iniciando processamento PARALELO de 50 PDFs usando 8 núcleos CPU...
+2026-02-09 21:27:24,038 - [INFO] - src.extract - Processamento PDF finalizado. Consolidando DataFrames...
+2026-02-09 21:27:24,121 - [INFO] - Main_Pipeline - Transformando dados da Folha...
+2026-02-09 21:27:24,121 - [INFO] - src.transform - Iniciando transformação PDF. Consolidado: 2791 linhas, Detalhado: 17522 linhas.
+2026-02-09 21:27:25,232 - [INFO] - src.transform - Transformação PDF concluída.
+2026-02-09 21:27:25,543 - [INFO] - Main_Pipeline - [OK] CSVs de auditoria gerados em: A:\Projetos\ARQ-People%20Intelligence%20-%20Produ%C3%A7%C3%A3o\output
+2026-02-09 21:27:25,545 - [INFO] - Main_Pipeline - Carregando Fatos de Folha no Banco...
+2026-02-09 21:27:25,545 - [INFO] - src.load - Iniciando carga de Fatos de Folha (PDF)...
+2026-02-09 21:27:26,040 - [INFO] - src.load - Dimensão Colaboradores Base atualizada via CSV.
+2026-02-09 21:27:26,669 - [INFO] - src.load - Fato Consolidada carregada com sucesso.
+2026-02-09 21:27:29,068 - [INFO] - src.load - Fato Detalhada carregada com sucesso.
+2026-02-09 21:27:29,069 - [INFO] - Main_Pipeline - --- [ETAPA 3] Pipeline API Solides ---
+2026-02-09 21:27:29,070 - [INFO] - src.extract - --- API Solides: Buscando lista de IDs... ---
+2026-02-09 21:27:52,813 - [INFO] - src.extract - Página 1 carregada...
+2026-02-09 21:27:53,682 - [INFO] - src.extract - Página 2 carregada...
+2026-02-09 21:27:53,897 - [INFO] - src.extract - --- API Solides: Iniciando extração PARALELA de 140 colaboradores... ---
+2026-02-09 21:27:57,280 - [INFO] - src.extract - Progresso API: 100/140 concluídos...
+2026-02-09 21:27:57,959 - [INFO] - Main_Pipeline - Transformando dados da API...
+2026-02-09 21:27:57,959 - [INFO] - src.transform - Transformando 140 colaboradores da API...
+2026-02-09 21:27:57,977 - [INFO] - src.transform - Transformação API concluída. 140 colaboradores processados.
+2026-02-09 21:27:57,991 - [INFO] - src.transform - Transformação de Benefícios concluída. 477 registros.
+2026-02-09 21:27:57,991 - [INFO] - Main_Pipeline - Carregando dados da API no Banco...
+2026-02-09 21:27:57,992 - [INFO] - src.load - Carregando staging_colaboradores...
+2026-02-09 21:27:58,098 - [INFO] - src.load - Carregando staging_beneficios_api...
+2026-02-09 21:27:58,221 - [INFO] - src.load - Carga API (Colaboradores e Benefícios) concluída com sucesso.
+2026-02-09 21:27:58,222 - [INFO] - Main_Pipeline - --- [ETAPA 4] Pós-Processamento ---
+2026-02-09 21:27:58,222 - [INFO] - src.load - Iniciando pós-processamento de transferidos...
+2026-02-09 21:27:58,239 - [INFO] - src.load - Status 'Transferido' processado com sucesso.
+2026-02-09 21:27:58,240 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 21:27:58,240 - [INFO] - Main_Pipeline -    PIPELINE FINALIZADO EM 1m 33s
+2026-02-09 21:27:58,240 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:47:31,618 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:47:31,619 - [INFO] - Main_Pipeline -    INICIANDO PIPELINE DE DADOS - ARQ PEOPLE INTEL
+2026-02-09 22:47:31,620 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:47:31,623 - [INFO] - src.extract - --- [FTP] Iniciando conexão com localhost ---
+2026-02-09 22:47:31,632 - [ERROR] - src.extract - Erro ao listar arquivos no FTP: 503 Use AUTH first.
+2026-02-09 22:47:31,886 - [INFO] - src.load - Schema 'FOPAG' verificado/garantido com sucesso.
+2026-02-09 22:47:31,886 - [INFO] - Main_Pipeline - [OK] Conexão com banco estabelecida. Schema: FOPAG
+2026-02-09 22:47:31,886 - [INFO] - Main_Pipeline - --- [ETAPA 1] Dimensão Calendário ---
+2026-02-09 22:47:32,052 - [INFO] - src.load - Dimensão Calendário verificada/atualizada.
+2026-02-09 22:47:32,053 - [INFO] - Main_Pipeline - --- [ETAPA 2] Pipeline Folha de Pagamento (PDFs) ---
+2026-02-09 22:47:32,053 - [WARNING] - src.extract - Nenhum arquivo PDF encontrado em: A:\Projetos\ARQ-People%20Intelligence%20-%20Produ%C3%A7%C3%A3o\input
+2026-02-09 22:47:32,058 - [WARNING] - Main_Pipeline - [AVISO] Nenhum dado foi extraído dos PDFs. Verifique a pasta input ou o layout.
+2026-02-09 22:47:32,059 - [INFO] - Main_Pipeline - --- [ETAPA 3] Pipeline API Solides ---
+2026-02-09 22:47:32,059 - [INFO] - src.extract - --- API Solides: Buscando lista de IDs... ---
+2026-02-09 22:47:33,665 - [INFO] - src.extract - Página 1 carregada...
+2026-02-09 22:47:34,592 - [INFO] - src.extract - Página 2 carregada...
+2026-02-09 22:47:34,808 - [INFO] - src.extract - --- API Solides: Iniciando extração PARALELA de 140 colaboradores... ---
+2026-02-09 22:47:38,018 - [INFO] - src.extract - Progresso API: 100/140 concluídos...
+2026-02-09 22:47:38,958 - [INFO] - Main_Pipeline - Transformando dados da API...
+2026-02-09 22:47:38,959 - [INFO] - src.transform - Transformando 140 colaboradores da API...
+2026-02-09 22:47:38,996 - [INFO] - src.transform - Transformação API concluída. 140 colaboradores processados.
+2026-02-09 22:47:39,007 - [INFO] - src.transform - Transformação de Benefícios concluída. 477 registros.
+2026-02-09 22:47:39,007 - [INFO] - Main_Pipeline - Carregando dados da API no Banco...
+2026-02-09 22:47:39,008 - [INFO] - src.load - Carregando staging_colaboradores...
+2026-02-09 22:47:39,205 - [INFO] - src.load - Carregando staging_beneficios_api...
+2026-02-09 22:47:39,288 - [INFO] - src.load - Carga API (Colaboradores e Benefícios) concluída com sucesso.
+2026-02-09 22:47:39,288 - [INFO] - Main_Pipeline - --- [ETAPA 4] Pós-Processamento ---
+2026-02-09 22:47:39,288 - [INFO] - src.load - Iniciando pós-processamento de transferidos...
+2026-02-09 22:47:39,296 - [ERROR] - src.load - Erro no pós-processamento de transferidos: (psycopg2.errors.UndefinedTable) ERRO:  relação "FOPAG.stg_folha_consol" não existe
+LINE 7:             LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base...
+                              ^
+
+[SQL: 
+        UPDATE "FOPAG".dim_colaboradores_base
+        SET situacao_csv = 'Transferido'
+        WHERE cpf IN (
+            SELECT base.cpf FROM "FOPAG".dim_colaboradores_base base
+            LEFT JOIN "FOPAG".staging_colaboradores api ON base.cpf = api.cpf
+            LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base.cpf = csv.cpf
+            WHERE api.cpf IS NULL AND csv.cpf IS NULL 
+            AND base.data_demissao_csv IS NULL
+            AND base.situacao_csv NOT IN ('Transferido', 'Desligado')
+        );
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'FOPAG' AND table_name = 'dim_colaboradores') THEN
+                UPDATE "FOPAG".dim_colaboradores
+                SET ativo = False, data_ultima_atualizacao = current_timestamp
+                FROM "FOPAG".dim_colaboradores_base base
+                WHERE "FOPAG".dim_colaboradores.colaborador_sk = base.colaborador_sk
+                AND base.situacao_csv = 'Transferido' AND "FOPAG".dim_colaboradores.ativo = True;
+            END IF;
+        END $$;
+    ]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: ERRO:  relação "FOPAG.stg_folha_consol" não existe
+LINE 7:             LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base...
+                              ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "A:\Projetos\ARQ-People%20Intelligence%20-%20Produ%C3%A7%C3%A3o\src\load.py", line 528, in processar_status_transferidos
+    conn.execute(sql)
+    ~~~~~~~~~~~~^^^^^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) ERRO:  relação "FOPAG.stg_folha_consol" não existe
+LINE 7:             LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base...
+                              ^
+
+[SQL: 
+        UPDATE "FOPAG".dim_colaboradores_base
+        SET situacao_csv = 'Transferido'
+        WHERE cpf IN (
+            SELECT base.cpf FROM "FOPAG".dim_colaboradores_base base
+            LEFT JOIN "FOPAG".staging_colaboradores api ON base.cpf = api.cpf
+            LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base.cpf = csv.cpf
+            WHERE api.cpf IS NULL AND csv.cpf IS NULL 
+            AND base.data_demissao_csv IS NULL
+            AND base.situacao_csv NOT IN ('Transferido', 'Desligado')
+        );
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'FOPAG' AND table_name = 'dim_colaboradores') THEN
+                UPDATE "FOPAG".dim_colaboradores
+                SET ativo = False, data_ultima_atualizacao = current_timestamp
+                FROM "FOPAG".dim_colaboradores_base base
+                WHERE "FOPAG".dim_colaboradores.colaborador_sk = base.colaborador_sk
+                AND base.situacao_csv = 'Transferido' AND "FOPAG".dim_colaboradores.ativo = True;
+            END IF;
+        END $$;
+    ]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-02-09 22:47:39,372 - [INFO] - Main_Pipeline - --- [ETAPA FINAL] Limpeza de Arquivos Locais ---
+2026-02-09 22:47:39,372 - [INFO] - Main_Pipeline - Limpeza concluída: 0 arquivos removidos da pasta input.
+2026-02-09 22:47:39,372 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:47:39,373 - [INFO] - Main_Pipeline -    PIPELINE FINALIZADO EM 0m 7s
+2026-02-09 22:47:39,373 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:50:07,470 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:50:07,470 - [INFO] - Main_Pipeline -    INICIANDO PIPELINE DE DADOS - ARQ PEOPLE INTEL
+2026-02-09 22:50:07,470 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:50:07,471 - [INFO] - src.extract - --- [FTP] Iniciando conexão segura (FTPS) com localhost ---
+2026-02-09 22:50:07,539 - [ERROR] - src.extract - Erro ao conectar ou listar arquivos no FTP: [SSL: SHUTDOWN_WHILE_IN_INIT] shutdown while in init (_ssl.c:2838)
+2026-02-09 22:50:07,621 - [INFO] - src.load - Schema 'FOPAG' verificado/garantido com sucesso.
+2026-02-09 22:50:07,622 - [INFO] - Main_Pipeline - [OK] Conexão com banco estabelecida. Schema: FOPAG
+2026-02-09 22:50:07,622 - [INFO] - Main_Pipeline - --- [ETAPA 1] Dimensão Calendário ---
+2026-02-09 22:50:07,640 - [INFO] - src.load - Dimensão Calendário verificada/atualizada.
+2026-02-09 22:50:07,641 - [INFO] - Main_Pipeline - --- [ETAPA 2] Pipeline Folha de Pagamento (PDFs) ---
+2026-02-09 22:50:07,641 - [WARNING] - src.extract - Nenhum arquivo PDF encontrado em: A:\Projetos\ARQ-People%20Intelligence%20-%20Produ%C3%A7%C3%A3o\input
+2026-02-09 22:50:07,643 - [WARNING] - Main_Pipeline - [AVISO] Nenhum dado foi extraído dos PDFs. Verifique a pasta input ou o layout.
+2026-02-09 22:50:07,643 - [INFO] - Main_Pipeline - --- [ETAPA 3] Pipeline API Solides ---
+2026-02-09 22:50:07,644 - [INFO] - src.extract - --- API Solides: Buscando lista de IDs... ---
+2026-02-09 22:50:09,754 - [INFO] - src.extract - Página 1 carregada...
+2026-02-09 22:50:10,547 - [INFO] - src.extract - Página 2 carregada...
+2026-02-09 22:50:10,761 - [INFO] - src.extract - --- API Solides: Iniciando extração PARALELA de 140 colaboradores... ---
+2026-02-09 22:50:13,903 - [INFO] - src.extract - Progresso API: 100/140 concluídos...
+2026-02-09 22:50:14,498 - [INFO] - Main_Pipeline - Transformando dados da API...
+2026-02-09 22:50:14,498 - [INFO] - src.transform - Transformando 140 colaboradores da API...
+2026-02-09 22:50:14,517 - [INFO] - src.transform - Transformação API concluída. 140 colaboradores processados.
+2026-02-09 22:50:14,524 - [INFO] - src.transform - Transformação de Benefícios concluída. 477 registros.
+2026-02-09 22:50:14,524 - [INFO] - Main_Pipeline - Carregando dados da API no Banco...
+2026-02-09 22:50:14,525 - [INFO] - src.load - Carregando staging_colaboradores...
+2026-02-09 22:50:14,777 - [INFO] - src.load - Carregando staging_beneficios_api...
+2026-02-09 22:50:14,849 - [INFO] - src.load - Carga API (Colaboradores e Benefícios) concluída com sucesso.
+2026-02-09 22:50:14,849 - [INFO] - Main_Pipeline - --- [ETAPA 4] Pós-Processamento ---
+2026-02-09 22:50:14,850 - [INFO] - src.load - Iniciando pós-processamento de transferidos...
+2026-02-09 22:50:14,852 - [ERROR] - src.load - Erro no pós-processamento de transferidos: (psycopg2.errors.UndefinedTable) ERRO:  relação "FOPAG.stg_folha_consol" não existe
+LINE 7:             LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base...
+                              ^
+
+[SQL: 
+        UPDATE "FOPAG".dim_colaboradores_base
+        SET situacao_csv = 'Transferido'
+        WHERE cpf IN (
+            SELECT base.cpf FROM "FOPAG".dim_colaboradores_base base
+            LEFT JOIN "FOPAG".staging_colaboradores api ON base.cpf = api.cpf
+            LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base.cpf = csv.cpf
+            WHERE api.cpf IS NULL AND csv.cpf IS NULL 
+            AND base.data_demissao_csv IS NULL
+            AND base.situacao_csv NOT IN ('Transferido', 'Desligado')
+        );
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'FOPAG' AND table_name = 'dim_colaboradores') THEN
+                UPDATE "FOPAG".dim_colaboradores
+                SET ativo = False, data_ultima_atualizacao = current_timestamp
+                FROM "FOPAG".dim_colaboradores_base base
+                WHERE "FOPAG".dim_colaboradores.colaborador_sk = base.colaborador_sk
+                AND base.situacao_csv = 'Transferido' AND "FOPAG".dim_colaboradores.ativo = True;
+            END IF;
+        END $$;
+    ]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: ERRO:  relação "FOPAG.stg_folha_consol" não existe
+LINE 7:             LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base...
+                              ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "A:\Projetos\ARQ-People%20Intelligence%20-%20Produ%C3%A7%C3%A3o\src\load.py", line 528, in processar_status_transferidos
+    conn.execute(sql)
+    ~~~~~~~~~~~~^^^^^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) ERRO:  relação "FOPAG.stg_folha_consol" não existe
+LINE 7:             LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base...
+                              ^
+
+[SQL: 
+        UPDATE "FOPAG".dim_colaboradores_base
+        SET situacao_csv = 'Transferido'
+        WHERE cpf IN (
+            SELECT base.cpf FROM "FOPAG".dim_colaboradores_base base
+            LEFT JOIN "FOPAG".staging_colaboradores api ON base.cpf = api.cpf
+            LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base.cpf = csv.cpf
+            WHERE api.cpf IS NULL AND csv.cpf IS NULL 
+            AND base.data_demissao_csv IS NULL
+            AND base.situacao_csv NOT IN ('Transferido', 'Desligado')
+        );
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'FOPAG' AND table_name = 'dim_colaboradores') THEN
+                UPDATE "FOPAG".dim_colaboradores
+                SET ativo = False, data_ultima_atualizacao = current_timestamp
+                FROM "FOPAG".dim_colaboradores_base base
+                WHERE "FOPAG".dim_colaboradores.colaborador_sk = base.colaborador_sk
+                AND base.situacao_csv = 'Transferido' AND "FOPAG".dim_colaboradores.ativo = True;
+            END IF;
+        END $$;
+    ]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-02-09 22:50:14,857 - [INFO] - Main_Pipeline - --- [ETAPA FINAL] Limpeza de Arquivos Locais ---
+2026-02-09 22:50:14,857 - [INFO] - Main_Pipeline - Limpeza concluída: 0 arquivos removidos da pasta input.
+2026-02-09 22:50:14,858 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:50:14,858 - [INFO] - Main_Pipeline -    PIPELINE FINALIZADO EM 0m 7s
+2026-02-09 22:50:14,858 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:52:32,682 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:52:32,683 - [INFO] - Main_Pipeline -    INICIANDO PIPELINE DE DADOS - ARQ PEOPLE INTEL
+2026-02-09 22:52:32,683 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:52:32,684 - [INFO] - src.extract - --- [FTP] Conectando em localhost (Modo Seguro com Reuso de Sessão) ---
+2026-02-09 22:52:32,710 - [ERROR] - src.extract - Erro CRÍTICO no FTP: FTP_TLS.__init__() takes from 1 to 5 positional arguments but 8 positional arguments (and 1 keyword-only argument) were given
+Traceback (most recent call last):
+  File "A:\Projetos\ARQ-People%20Intelligence%20-%20Produ%C3%A7%C3%A3o\src\extract.py", line 101, in ingestar_ftp_paralelo
+    ftp_main = FTPS_Session(host)  # Usa a classe customizada
+  File "A:\Projetos\ARQ-People%20Intelligence%20-%20Produ%C3%A7%C3%A3o\src\extract.py", line 38, in __init__
+    super().__init__(host, user, passwd, acct, keyfile, certfile, timeout, context=context)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: FTP_TLS.__init__() takes from 1 to 5 positional arguments but 8 positional arguments (and 1 keyword-only argument) were given
+2026-02-09 22:52:32,794 - [INFO] - src.load - Schema 'FOPAG' verificado/garantido com sucesso.
+2026-02-09 22:52:32,794 - [INFO] - Main_Pipeline - [OK] Conexão com banco estabelecida. Schema: FOPAG
+2026-02-09 22:52:32,795 - [INFO] - Main_Pipeline - --- [ETAPA 1] Dimensão Calendário ---
+2026-02-09 22:52:32,813 - [INFO] - src.load - Dimensão Calendário verificada/atualizada.
+2026-02-09 22:52:32,813 - [INFO] - Main_Pipeline - --- [ETAPA 2] Pipeline Folha de Pagamento (PDFs) ---
+2026-02-09 22:52:32,813 - [WARNING] - src.extract - Nenhum arquivo PDF encontrado em: A:\Projetos\ARQ-People%20Intelligence%20-%20Produ%C3%A7%C3%A3o\input
+2026-02-09 22:52:32,815 - [WARNING] - Main_Pipeline - [AVISO] Nenhum dado foi extraído dos PDFs. Verifique a pasta input ou o layout.
+2026-02-09 22:52:32,816 - [INFO] - Main_Pipeline - --- [ETAPA 3] Pipeline API Solides ---
+2026-02-09 22:52:32,816 - [INFO] - src.extract - --- API Solides: Buscando lista de IDs... ---
+2026-02-09 22:52:35,104 - [INFO] - src.extract - Página 1 carregada...
+2026-02-09 22:52:35,817 - [INFO] - src.extract - Página 2 carregada...
+2026-02-09 22:52:36,034 - [INFO] - src.extract - --- API Solides: Iniciando extração PARALELA de 140 colaboradores... ---
+2026-02-09 22:52:39,278 - [INFO] - src.extract - Progresso API: 100/140 concluídos...
+2026-02-09 22:52:40,353 - [INFO] - Main_Pipeline - Transformando dados da API...
+2026-02-09 22:52:40,353 - [INFO] - src.transform - Transformando 140 colaboradores da API...
+2026-02-09 22:52:40,369 - [INFO] - src.transform - Transformação API concluída. 140 colaboradores processados.
+2026-02-09 22:52:40,376 - [INFO] - src.transform - Transformação de Benefícios concluída. 477 registros.
+2026-02-09 22:52:40,376 - [INFO] - Main_Pipeline - Carregando dados da API no Banco...
+2026-02-09 22:52:40,377 - [INFO] - src.load - Carregando staging_colaboradores...
+2026-02-09 22:52:40,569 - [INFO] - src.load - Carregando staging_beneficios_api...
+2026-02-09 22:52:40,654 - [INFO] - src.load - Carga API (Colaboradores e Benefícios) concluída com sucesso.
+2026-02-09 22:52:40,655 - [INFO] - Main_Pipeline - --- [ETAPA 4] Pós-Processamento ---
+2026-02-09 22:52:40,655 - [INFO] - src.load - Iniciando pós-processamento de transferidos...
+2026-02-09 22:52:40,657 - [ERROR] - src.load - Erro no pós-processamento de transferidos: (psycopg2.errors.UndefinedTable) ERRO:  relação "FOPAG.stg_folha_consol" não existe
+LINE 7:             LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base...
+                              ^
+
+[SQL: 
+        UPDATE "FOPAG".dim_colaboradores_base
+        SET situacao_csv = 'Transferido'
+        WHERE cpf IN (
+            SELECT base.cpf FROM "FOPAG".dim_colaboradores_base base
+            LEFT JOIN "FOPAG".staging_colaboradores api ON base.cpf = api.cpf
+            LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base.cpf = csv.cpf
+            WHERE api.cpf IS NULL AND csv.cpf IS NULL 
+            AND base.data_demissao_csv IS NULL
+            AND base.situacao_csv NOT IN ('Transferido', 'Desligado')
+        );
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'FOPAG' AND table_name = 'dim_colaboradores') THEN
+                UPDATE "FOPAG".dim_colaboradores
+                SET ativo = False, data_ultima_atualizacao = current_timestamp
+                FROM "FOPAG".dim_colaboradores_base base
+                WHERE "FOPAG".dim_colaboradores.colaborador_sk = base.colaborador_sk
+                AND base.situacao_csv = 'Transferido' AND "FOPAG".dim_colaboradores.ativo = True;
+            END IF;
+        END $$;
+    ]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: ERRO:  relação "FOPAG.stg_folha_consol" não existe
+LINE 7:             LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base...
+                              ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "A:\Projetos\ARQ-People%20Intelligence%20-%20Produ%C3%A7%C3%A3o\src\load.py", line 528, in processar_status_transferidos
+    conn.execute(sql)
+    ~~~~~~~~~~~~^^^^^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) ERRO:  relação "FOPAG.stg_folha_consol" não existe
+LINE 7:             LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base...
+                              ^
+
+[SQL: 
+        UPDATE "FOPAG".dim_colaboradores_base
+        SET situacao_csv = 'Transferido'
+        WHERE cpf IN (
+            SELECT base.cpf FROM "FOPAG".dim_colaboradores_base base
+            LEFT JOIN "FOPAG".staging_colaboradores api ON base.cpf = api.cpf
+            LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base.cpf = csv.cpf
+            WHERE api.cpf IS NULL AND csv.cpf IS NULL 
+            AND base.data_demissao_csv IS NULL
+            AND base.situacao_csv NOT IN ('Transferido', 'Desligado')
+        );
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'FOPAG' AND table_name = 'dim_colaboradores') THEN
+                UPDATE "FOPAG".dim_colaboradores
+                SET ativo = False, data_ultima_atualizacao = current_timestamp
+                FROM "FOPAG".dim_colaboradores_base base
+                WHERE "FOPAG".dim_colaboradores.colaborador_sk = base.colaborador_sk
+                AND base.situacao_csv = 'Transferido' AND "FOPAG".dim_colaboradores.ativo = True;
+            END IF;
+        END $$;
+    ]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-02-09 22:52:40,661 - [INFO] - Main_Pipeline - --- [ETAPA FINAL] Limpeza de Arquivos Locais ---
+2026-02-09 22:52:40,661 - [INFO] - Main_Pipeline - Limpeza concluída: 0 arquivos removidos da pasta input.
+2026-02-09 22:52:40,661 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:52:40,661 - [INFO] - Main_Pipeline -    PIPELINE FINALIZADO EM 0m 7s
+2026-02-09 22:52:40,661 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:55:55,223 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:55:55,223 - [INFO] - Main_Pipeline -    INICIANDO PIPELINE DE DADOS - ARQ PEOPLE INTEL
+2026-02-09 22:55:55,223 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:55:55,224 - [INFO] - src.extract - --- [FTP] Conectando em localhost (Modo Seguro com Reuso de Sessão) ---
+2026-02-09 22:55:55,306 - [INFO] - src.extract - Encontrados 50 arquivos. Iniciando download paralelo...
+2026-02-09 22:56:01,040 - [INFO] - src.extract - --- [FTP] Processo concluído. Baixados e removidos: 50/50 ---
+2026-02-09 22:56:01,119 - [INFO] - src.load - Schema 'FOPAG' verificado/garantido com sucesso.
+2026-02-09 22:56:01,119 - [INFO] - Main_Pipeline - [OK] Conexão com banco estabelecida. Schema: FOPAG
+2026-02-09 22:56:01,120 - [INFO] - Main_Pipeline - --- [ETAPA 1] Dimensão Calendário ---
+2026-02-09 22:56:01,138 - [INFO] - src.load - Dimensão Calendário verificada/atualizada.
+2026-02-09 22:56:01,138 - [INFO] - Main_Pipeline - --- [ETAPA 2] Pipeline Folha de Pagamento (PDFs) ---
+2026-02-09 22:56:01,139 - [INFO] - src.extract - Iniciando processamento PARALELO de 50 PDFs usando 8 núcleos CPU...
+2026-02-09 22:56:05,770 - [ERROR] - src.extract - Erro no worker PDF 05.2023 ARQDIGITAL - Folha de Pagamento.pdf: name 're' is not defined
+2026-02-09 22:56:05,853 - [ERROR] - src.extract - Erro no worker PDF 04.2023 ARQDIGITAL - Folha de Pagamento.pdf: name 're' is not defined
+2026-02-09 22:56:05,925 - [ERROR] - src.extract - Erro no worker PDF 01.2023 ARQDIGITAL - Folha de Pagamento c.Prolabore Carol.pdf: name 're' is not defined
+2026-02-09 22:56:06,176 - [ERROR] - src.extract - Erro no worker PDF 06.2023 ARQDIGITAL - Folha de Pagamento.pdf: name 're' is not defined
+2026-02-09 22:56:07,238 - [ERROR] - src.extract - Erro no worker PDF 08.2024 ARQDIGITAL - Folha de Pagamento.pdf: name 're' is not defined
+2026-02-09 22:56:07,452 - [ERROR] - src.extract - Erro no worker PDF 04.2024 ARQ - folha de Pagamento.pdf: name 're' is not defined
+2026-02-09 22:56:07,580 - [ERROR] - src.extract - Erro no worker PDF 06.2024 ARQDIGITAL - Folha de Pagamento 2.pdf: name 're' is not defined
+2026-02-09 22:56:07,592 - [ERROR] - src.extract - Erro no worker PDF 05.2024 ARQDIGITAL - Folha de Pagamento.pdf: name 're' is not defined
+2026-02-09 22:56:09,515 - [ERROR] - src.extract - Erro no worker PDF 10- Extrato Mensal 03-2023.pdf: name 're' is not defined
+2026-02-09 22:56:10,054 - [ERROR] - src.extract - Erro no worker PDF 10 - Extrato Mensal - 12-2023.pdf: name 're' is not defined
+2026-02-09 22:56:10,753 - [ERROR] - src.extract - Erro no worker PDF 09.2024 ARQDIGITAL - Folha de Pagamento.pdf: name 're' is not defined
+2026-02-09 22:56:10,886 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato 13º integral.pdf: name 're' is not defined
+2026-02-09 22:56:11,032 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Decimo Terceiro- 10-2025.pdf: name 're' is not defined
+2026-02-09 22:56:11,598 - [ERROR] - src.extract - Erro no worker PDF 10- Extrato Folha- 06-2025.pdf: name 're' is not defined
+2026-02-09 22:56:12,325 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Decimo Terceiro- 12-2025.pdf: name 're' is not defined
+2026-02-09 22:56:14,347 - [ERROR] - src.extract - Erro no worker PDF 10--Extrato Geral- 09-2025.pdf: name 're' is not defined
+2026-02-09 22:56:15,166 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Folha- 01-2024.pdf: name 're' is not defined
+2026-02-09 22:56:15,599 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Folha- 07-2023.pdf: name 're' is not defined
+2026-02-09 22:56:16,119 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Folha- 08-2023.pdf: name 're' is not defined
+2026-02-09 22:56:16,149 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Folha- 04-2025.pdf: name 're' is not defined
+2026-02-09 22:56:17,110 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Folha- 09-2023.pdf: name 're' is not defined
+2026-02-09 22:56:17,501 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Folha- 07-2025.pdf: name 're' is not defined
+2026-02-09 22:56:18,730 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Mensal 02-2023.pdf: name 're' is not defined
+2026-02-09 22:56:18,825 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Folha- 10-2025.pdf: name 're' is not defined
+2026-02-09 22:56:19,284 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Mensal 06-2022.pdf: name 're' is not defined
+2026-02-09 22:56:19,447 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Mensal 08-2022.pdf: name 're' is not defined
+2026-02-09 22:56:19,720 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Mensal 07-2022.pdf: name 're' is not defined
+2026-02-09 22:56:20,141 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Mensal 09-2022.pdf: name 're' is not defined
+2026-02-09 22:56:20,271 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Mensal 01.2026.pdf: name 're' is not defined
+2026-02-09 22:56:20,380 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Mensal 10-2022.pdf: name 're' is not defined
+2026-02-09 22:56:21,814 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Mensal 11-2022.pdf: name 're' is not defined
+2026-02-09 22:56:22,610 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Mensal 12-2022.pdf: name 're' is not defined
+2026-02-09 22:56:24,653 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Mensal-01-2025.pdf: name 're' is not defined
+2026-02-09 22:56:24,673 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Mensal 11.2025.pdf: name 're' is not defined
+2026-02-09 22:56:25,068 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Mensal 12.2025.pdf: name 're' is not defined
+2026-02-09 22:56:25,085 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Mensal-02-2024.pdf: name 're' is not defined
+2026-02-09 22:56:25,366 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Mensal-02-2025 ...pdf: name 're' is not defined
+2026-02-09 22:56:25,872 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Mensal-03-2024.pdf: name 're' is not defined
+2026-02-09 22:56:27,380 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Mensal-07-2024 ok.pdf: name 're' is not defined
+2026-02-09 22:56:28,158 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Mensal-08-2025.pdf: name 're' is not defined
+2026-02-09 22:56:28,284 - [ERROR] - src.extract - Erro no worker PDF 11.2024 ARQDIGITAL - 13° 1° Parcela.pdf: name 're' is not defined
+2026-02-09 22:56:28,685 - [ERROR] - src.extract - Erro no worker PDF 10.2023 ARQDIGITAL - Folha de Pagamento.pdf: name 're' is not defined
+2026-02-09 22:56:29,314 - [ERROR] - src.extract - Erro no worker PDF 11.2023 ARQ - Folha de Pagamento.pdf: name 're' is not defined
+2026-02-09 22:56:29,724 - [ERROR] - src.extract - Erro no worker PDF 10-Extrato Mensal-10-2024.pdf: name 're' is not defined
+2026-02-09 22:56:30,159 - [ERROR] - src.extract - Erro no worker PDF ARQ - 1ª Parcela 13.2023.pdf: name 're' is not defined
+2026-02-09 22:56:31,304 - [ERROR] - src.extract - Erro no worker PDF 11.2024 ARQDIGITAL - Folha de Pagamento.pdf: name 're' is not defined
+2026-02-09 22:56:31,503 - [ERROR] - src.extract - Erro no worker PDF 12.2024 ARQDIGITAL - Folha de Pagamento.pdf: name 're' is not defined
+2026-02-09 22:56:33,031 - [ERROR] - src.extract - Erro no worker PDF 13.2024 ARQDIGITAL - Folha Segunda Parcela do 13º Salário.pdf: name 're' is not defined
+2026-02-09 22:56:34,225 - [ERROR] - src.extract - Erro no worker PDF Extrato Folha-03-2025.pdf: name 're' is not defined
+2026-02-09 22:56:34,904 - [ERROR] - src.extract - Erro no worker PDF Extrato Folha-05-2025.pdf: name 're' is not defined
+2026-02-09 22:56:37,404 - [INFO] - src.extract - Processamento PDF finalizado. Consolidando DataFrames...
+2026-02-09 22:56:37,407 - [WARNING] - Main_Pipeline - [AVISO] Nenhum dado foi extraído dos PDFs. Verifique a pasta input ou o layout.
+2026-02-09 22:56:37,408 - [INFO] - Main_Pipeline - --- [ETAPA 3] Pipeline API Solides ---
+2026-02-09 22:56:37,408 - [INFO] - src.extract - --- API Solides: Buscando lista de IDs... ---
+2026-02-09 22:56:40,454 - [INFO] - src.extract - Página 1 carregada...
+2026-02-09 22:56:41,252 - [INFO] - src.extract - Página 2 carregada...
+2026-02-09 22:56:41,467 - [INFO] - src.extract - --- API Solides: Iniciando extração PARALELA de 140 colaboradores... ---
+2026-02-09 22:56:44,750 - [INFO] - src.extract - Progresso API: 100/140 concluídos...
+2026-02-09 22:56:45,361 - [INFO] - Main_Pipeline - Transformando dados da API...
+2026-02-09 22:56:45,362 - [INFO] - src.transform - Transformando 140 colaboradores da API...
+2026-02-09 22:56:45,378 - [INFO] - src.transform - Transformação API concluída. 140 colaboradores processados.
+2026-02-09 22:56:45,383 - [INFO] - src.transform - Transformação de Benefícios concluída. 477 registros.
+2026-02-09 22:56:45,384 - [INFO] - Main_Pipeline - Carregando dados da API no Banco...
+2026-02-09 22:56:45,385 - [INFO] - src.load - Carregando staging_colaboradores...
+2026-02-09 22:56:45,505 - [INFO] - src.load - Carregando staging_beneficios_api...
+2026-02-09 22:56:45,755 - [INFO] - src.load - Carga API (Colaboradores e Benefícios) concluída com sucesso.
+2026-02-09 22:56:45,756 - [INFO] - Main_Pipeline - --- [ETAPA 4] Pós-Processamento ---
+2026-02-09 22:56:45,756 - [INFO] - src.load - Iniciando pós-processamento de transferidos...
+2026-02-09 22:56:45,760 - [ERROR] - src.load - Erro no pós-processamento de transferidos: (psycopg2.errors.UndefinedTable) ERRO:  relação "FOPAG.stg_folha_consol" não existe
+LINE 7:             LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base...
+                              ^
+
+[SQL: 
+        UPDATE "FOPAG".dim_colaboradores_base
+        SET situacao_csv = 'Transferido'
+        WHERE cpf IN (
+            SELECT base.cpf FROM "FOPAG".dim_colaboradores_base base
+            LEFT JOIN "FOPAG".staging_colaboradores api ON base.cpf = api.cpf
+            LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base.cpf = csv.cpf
+            WHERE api.cpf IS NULL AND csv.cpf IS NULL 
+            AND base.data_demissao_csv IS NULL
+            AND base.situacao_csv NOT IN ('Transferido', 'Desligado')
+        );
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'FOPAG' AND table_name = 'dim_colaboradores') THEN
+                UPDATE "FOPAG".dim_colaboradores
+                SET ativo = False, data_ultima_atualizacao = current_timestamp
+                FROM "FOPAG".dim_colaboradores_base base
+                WHERE "FOPAG".dim_colaboradores.colaborador_sk = base.colaborador_sk
+                AND base.situacao_csv = 'Transferido' AND "FOPAG".dim_colaboradores.ativo = True;
+            END IF;
+        END $$;
+    ]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: ERRO:  relação "FOPAG.stg_folha_consol" não existe
+LINE 7:             LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base...
+                              ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "A:\Projetos\ARQ-People%20Intelligence%20-%20Produ%C3%A7%C3%A3o\src\load.py", line 528, in processar_status_transferidos
+    conn.execute(sql)
+    ~~~~~~~~~~~~^^^^^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) ERRO:  relação "FOPAG.stg_folha_consol" não existe
+LINE 7:             LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base...
+                              ^
+
+[SQL: 
+        UPDATE "FOPAG".dim_colaboradores_base
+        SET situacao_csv = 'Transferido'
+        WHERE cpf IN (
+            SELECT base.cpf FROM "FOPAG".dim_colaboradores_base base
+            LEFT JOIN "FOPAG".staging_colaboradores api ON base.cpf = api.cpf
+            LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base.cpf = csv.cpf
+            WHERE api.cpf IS NULL AND csv.cpf IS NULL 
+            AND base.data_demissao_csv IS NULL
+            AND base.situacao_csv NOT IN ('Transferido', 'Desligado')
+        );
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'FOPAG' AND table_name = 'dim_colaboradores') THEN
+                UPDATE "FOPAG".dim_colaboradores
+                SET ativo = False, data_ultima_atualizacao = current_timestamp
+                FROM "FOPAG".dim_colaboradores_base base
+                WHERE "FOPAG".dim_colaboradores.colaborador_sk = base.colaborador_sk
+                AND base.situacao_csv = 'Transferido' AND "FOPAG".dim_colaboradores.ativo = True;
+            END IF;
+        END $$;
+    ]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-02-09 22:56:45,767 - [INFO] - Main_Pipeline - --- [ETAPA FINAL] Limpeza de Arquivos Locais ---
+2026-02-09 22:56:45,776 - [INFO] - Main_Pipeline - Limpeza concluída: 50 arquivos removidos da pasta input.
+2026-02-09 22:56:45,776 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:56:45,776 - [INFO] - Main_Pipeline -    PIPELINE FINALIZADO EM 0m 50s
+2026-02-09 22:56:45,777 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:57:28,723 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:57:28,723 - [INFO] - Main_Pipeline -    INICIANDO PIPELINE DE DADOS - ARQ PEOPLE INTEL
+2026-02-09 22:57:28,723 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:57:28,724 - [INFO] - src.extract - --- [FTP] Conectando em localhost (Modo Seguro com Reuso de Sessão) ---
+2026-02-09 22:57:28,800 - [INFO] - src.extract - Nenhum arquivo PDF encontrado no diretório remoto.
+2026-02-09 22:57:28,879 - [INFO] - src.load - Schema 'FOPAG' verificado/garantido com sucesso.
+2026-02-09 22:57:28,879 - [INFO] - Main_Pipeline - [OK] Conexão com banco estabelecida. Schema: FOPAG
+2026-02-09 22:57:28,879 - [INFO] - Main_Pipeline - --- [ETAPA 1] Dimensão Calendário ---
+2026-02-09 22:57:28,927 - [INFO] - src.load - Dimensão Calendário verificada/atualizada.
+2026-02-09 22:57:28,928 - [INFO] - Main_Pipeline - --- [ETAPA 2] Pipeline Folha de Pagamento (PDFs) ---
+2026-02-09 22:57:28,928 - [WARNING] - src.extract - Nenhum arquivo PDF encontrado em: A:\Projetos\ARQ-People%20Intelligence%20-%20Produ%C3%A7%C3%A3o\input
+2026-02-09 22:57:28,930 - [WARNING] - Main_Pipeline - [AVISO] Nenhum dado foi extraído dos PDFs. Verifique a pasta input ou o layout.
+2026-02-09 22:57:28,931 - [INFO] - Main_Pipeline - --- [ETAPA 3] Pipeline API Solides ---
+2026-02-09 22:57:28,931 - [INFO] - src.extract - --- API Solides: Buscando lista de IDs... ---
+2026-02-09 22:57:30,485 - [INFO] - src.extract - Página 1 carregada...
+2026-02-09 22:57:31,324 - [INFO] - src.extract - Página 2 carregada...
+2026-02-09 22:57:31,530 - [INFO] - src.extract - --- API Solides: Iniciando extração PARALELA de 140 colaboradores... ---
+2026-02-09 22:57:34,875 - [INFO] - src.extract - Progresso API: 100/140 concluídos...
+2026-02-09 22:57:35,574 - [INFO] - Main_Pipeline - Transformando dados da API...
+2026-02-09 22:57:35,575 - [INFO] - src.transform - Transformando 140 colaboradores da API...
+2026-02-09 22:57:35,619 - [INFO] - src.transform - Transformação API concluída. 140 colaboradores processados.
+2026-02-09 22:57:35,631 - [INFO] - src.transform - Transformação de Benefícios concluída. 477 registros.
+2026-02-09 22:57:35,632 - [INFO] - Main_Pipeline - Carregando dados da API no Banco...
+2026-02-09 22:57:35,633 - [INFO] - src.load - Carregando staging_colaboradores...
+2026-02-09 22:57:35,780 - [INFO] - src.load - Carregando staging_beneficios_api...
+2026-02-09 22:57:35,888 - [INFO] - src.load - Carga API (Colaboradores e Benefícios) concluída com sucesso.
+2026-02-09 22:57:35,889 - [INFO] - Main_Pipeline - --- [ETAPA 4] Pós-Processamento ---
+2026-02-09 22:57:35,889 - [INFO] - src.load - Iniciando pós-processamento de transferidos...
+2026-02-09 22:57:35,891 - [ERROR] - src.load - Erro no pós-processamento de transferidos: (psycopg2.errors.UndefinedTable) ERRO:  relação "FOPAG.stg_folha_consol" não existe
+LINE 7:             LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base...
+                              ^
+
+[SQL: 
+        UPDATE "FOPAG".dim_colaboradores_base
+        SET situacao_csv = 'Transferido'
+        WHERE cpf IN (
+            SELECT base.cpf FROM "FOPAG".dim_colaboradores_base base
+            LEFT JOIN "FOPAG".staging_colaboradores api ON base.cpf = api.cpf
+            LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base.cpf = csv.cpf
+            WHERE api.cpf IS NULL AND csv.cpf IS NULL 
+            AND base.data_demissao_csv IS NULL
+            AND base.situacao_csv NOT IN ('Transferido', 'Desligado')
+        );
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'FOPAG' AND table_name = 'dim_colaboradores') THEN
+                UPDATE "FOPAG".dim_colaboradores
+                SET ativo = False, data_ultima_atualizacao = current_timestamp
+                FROM "FOPAG".dim_colaboradores_base base
+                WHERE "FOPAG".dim_colaboradores.colaborador_sk = base.colaborador_sk
+                AND base.situacao_csv = 'Transferido' AND "FOPAG".dim_colaboradores.ativo = True;
+            END IF;
+        END $$;
+    ]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: ERRO:  relação "FOPAG.stg_folha_consol" não existe
+LINE 7:             LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base...
+                              ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "A:\Projetos\ARQ-People%20Intelligence%20-%20Produ%C3%A7%C3%A3o\src\load.py", line 528, in processar_status_transferidos
+    conn.execute(sql)
+    ~~~~~~~~~~~~^^^^^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joaop\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) ERRO:  relação "FOPAG.stg_folha_consol" não existe
+LINE 7:             LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base...
+                              ^
+
+[SQL: 
+        UPDATE "FOPAG".dim_colaboradores_base
+        SET situacao_csv = 'Transferido'
+        WHERE cpf IN (
+            SELECT base.cpf FROM "FOPAG".dim_colaboradores_base base
+            LEFT JOIN "FOPAG".staging_colaboradores api ON base.cpf = api.cpf
+            LEFT JOIN "FOPAG"."stg_folha_consol" csv ON base.cpf = csv.cpf
+            WHERE api.cpf IS NULL AND csv.cpf IS NULL 
+            AND base.data_demissao_csv IS NULL
+            AND base.situacao_csv NOT IN ('Transferido', 'Desligado')
+        );
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'FOPAG' AND table_name = 'dim_colaboradores') THEN
+                UPDATE "FOPAG".dim_colaboradores
+                SET ativo = False, data_ultima_atualizacao = current_timestamp
+                FROM "FOPAG".dim_colaboradores_base base
+                WHERE "FOPAG".dim_colaboradores.colaborador_sk = base.colaborador_sk
+                AND base.situacao_csv = 'Transferido' AND "FOPAG".dim_colaboradores.ativo = True;
+            END IF;
+        END $$;
+    ]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-02-09 22:57:35,899 - [INFO] - Main_Pipeline - --- [ETAPA FINAL] Limpeza de Arquivos Locais ---
+2026-02-09 22:57:35,899 - [INFO] - Main_Pipeline - Limpeza concluída: 0 arquivos removidos da pasta input.
+2026-02-09 22:57:35,899 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:57:35,899 - [INFO] - Main_Pipeline -    PIPELINE FINALIZADO EM 0m 7s
+2026-02-09 22:57:35,899 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:58:29,142 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:58:29,143 - [INFO] - Main_Pipeline -    INICIANDO PIPELINE DE DADOS - ARQ PEOPLE INTEL
+2026-02-09 22:58:29,143 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:58:29,146 - [INFO] - src.extract - --- [FTP] Conectando em localhost (Modo Seguro com Reuso de Sessão) ---
+2026-02-09 22:58:29,245 - [INFO] - src.extract - Encontrados 50 arquivos. Iniciando download paralelo...
+2026-02-09 22:58:34,978 - [INFO] - src.extract - --- [FTP] Processo concluído. Baixados e removidos: 50/50 ---
+2026-02-09 22:58:35,226 - [INFO] - src.load - Schema 'FOPAG' verificado/garantido com sucesso.
+2026-02-09 22:58:35,227 - [INFO] - Main_Pipeline - [OK] Conexão com banco estabelecida. Schema: FOPAG
+2026-02-09 22:58:35,227 - [INFO] - Main_Pipeline - --- [ETAPA 1] Dimensão Calendário ---
+2026-02-09 22:58:35,271 - [INFO] - src.load - Dimensão Calendário verificada/atualizada.
+2026-02-09 22:58:35,272 - [INFO] - Main_Pipeline - --- [ETAPA 2] Pipeline Folha de Pagamento (PDFs) ---
+2026-02-09 22:58:35,272 - [INFO] - src.extract - Iniciando processamento PARALELO de 50 PDFs usando 8 núcleos CPU...
+2026-02-09 22:59:07,341 - [INFO] - src.extract - Processamento PDF finalizado. Consolidando DataFrames...
+2026-02-09 22:59:07,385 - [INFO] - Main_Pipeline - Transformando dados da Folha...
+2026-02-09 22:59:07,386 - [INFO] - src.transform - Iniciando transformação PDF. Consolidado: 2791 linhas, Detalhado: 17522 linhas.
+2026-02-09 22:59:07,900 - [INFO] - src.transform - Transformação PDF concluída.
+2026-02-09 22:59:08,006 - [INFO] - Main_Pipeline - [OK] CSVs de auditoria gerados em: A:\Projetos\ARQ-People%20Intelligence%20-%20Produ%C3%A7%C3%A3o\output
+2026-02-09 22:59:08,007 - [INFO] - Main_Pipeline - Carregando Fatos de Folha no Banco...
+2026-02-09 22:59:08,007 - [INFO] - src.load - Iniciando carga de Fatos de Folha (PDF)...
+2026-02-09 22:59:08,181 - [INFO] - src.load - Dimensão Colaboradores Base atualizada via CSV.
+2026-02-09 22:59:08,602 - [INFO] - src.load - Fato Consolidada carregada com sucesso.
+2026-02-09 22:59:09,502 - [INFO] - src.load - Fato Detalhada carregada com sucesso.
+2026-02-09 22:59:09,503 - [INFO] - Main_Pipeline - --- [ETAPA 3] Pipeline API Solides ---
+2026-02-09 22:59:09,504 - [INFO] - src.extract - --- API Solides: Buscando lista de IDs... ---
+2026-02-09 22:59:11,388 - [INFO] - src.extract - Página 1 carregada...
+2026-02-09 22:59:12,068 - [INFO] - src.extract - Página 2 carregada...
+2026-02-09 22:59:12,256 - [INFO] - src.extract - --- API Solides: Iniciando extração PARALELA de 140 colaboradores... ---
+2026-02-09 22:59:15,531 - [INFO] - src.extract - Progresso API: 100/140 concluídos...
+2026-02-09 22:59:16,199 - [INFO] - Main_Pipeline - Transformando dados da API...
+2026-02-09 22:59:16,199 - [INFO] - src.transform - Transformando 140 colaboradores da API...
+2026-02-09 22:59:16,220 - [INFO] - src.transform - Transformação API concluída. 140 colaboradores processados.
+2026-02-09 22:59:16,257 - [INFO] - src.transform - Transformação de Benefícios concluída. 477 registros.
+2026-02-09 22:59:16,258 - [INFO] - Main_Pipeline - Carregando dados da API no Banco...
+2026-02-09 22:59:16,258 - [INFO] - src.load - Carregando staging_colaboradores...
+2026-02-09 22:59:16,321 - [INFO] - src.load - Carregando staging_beneficios_api...
+2026-02-09 22:59:16,404 - [INFO] - src.load - Carga API (Colaboradores e Benefícios) concluída com sucesso.
+2026-02-09 22:59:16,404 - [INFO] - Main_Pipeline - --- [ETAPA 4] Pós-Processamento ---
+2026-02-09 22:59:16,404 - [INFO] - src.load - Iniciando pós-processamento de transferidos...
+2026-02-09 22:59:16,419 - [INFO] - src.load - Status 'Transferido' processado com sucesso.
+2026-02-09 22:59:16,419 - [INFO] - Main_Pipeline - --- [ETAPA FINAL] Limpeza de Arquivos Locais ---
+2026-02-09 22:59:16,428 - [INFO] - Main_Pipeline - Limpeza concluída: 50 arquivos removidos da pasta input.
+2026-02-09 22:59:16,429 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 22:59:16,429 - [INFO] - Main_Pipeline -    PIPELINE FINALIZADO EM 0m 47s
+2026-02-09 22:59:16,429 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 23:03:17,015 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 23:03:17,015 - [INFO] - Main_Pipeline -    INICIANDO PIPELINE DE DADOS - ARQ PEOPLE INTEL
+2026-02-09 23:03:17,016 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 23:03:17,016 - [INFO] - src.extract - --- [FTP] Conectando em localhost (Modo Seguro com Reuso de Sessão) ---
+2026-02-09 23:03:17,101 - [INFO] - src.extract - Encontrados 50 arquivos. Iniciando download paralelo...
+2026-02-09 23:03:20,353 - [INFO] - src.extract - --- [FTP] Processo concluído. Baixados e removidos: 50/50 ---
+2026-02-09 23:03:20,430 - [INFO] - src.load - Schema 'FOPAG' verificado/garantido com sucesso.
+2026-02-09 23:03:20,431 - [INFO] - Main_Pipeline - [OK] Conexão com banco estabelecida. Schema: FOPAG
+2026-02-09 23:03:20,431 - [INFO] - Main_Pipeline - --- [ETAPA 1] Dimensão Calendário ---
+2026-02-09 23:03:20,487 - [INFO] - src.load - Dimensão Calendário verificada/atualizada.
+2026-02-09 23:03:20,488 - [INFO] - Main_Pipeline - --- [ETAPA 2] Pipeline Folha de Pagamento (PDFs) ---
+2026-02-09 23:03:20,488 - [INFO] - src.extract - Iniciando processamento PARALELO de 50 PDFs usando 8 núcleos CPU...
+2026-02-09 23:03:52,952 - [INFO] - src.extract - Processamento PDF finalizado. Consolidando DataFrames...
+2026-02-09 23:03:52,984 - [INFO] - Main_Pipeline - Transformando dados da Folha...
+2026-02-09 23:03:52,985 - [INFO] - src.transform - Iniciando transformação PDF. Consolidado: 2791 linhas, Detalhado: 17522 linhas.
+2026-02-09 23:03:53,624 - [INFO] - src.transform - Transformação PDF concluída.
+2026-02-09 23:03:53,734 - [INFO] - Main_Pipeline - [OK] CSVs de auditoria gerados em: A:\Projetos\ARQ-People%20Intelligence%20-%20Produ%C3%A7%C3%A3o\output
+2026-02-09 23:03:53,735 - [INFO] - Main_Pipeline - Carregando Fatos de Folha no Banco...
+2026-02-09 23:03:53,735 - [INFO] - src.load - Iniciando carga de Fatos de Folha (PDF)...
+2026-02-09 23:03:53,917 - [INFO] - src.load - Dimensão Colaboradores Base atualizada via CSV.
+2026-02-09 23:03:54,335 - [INFO] - src.load - Fato Consolidada carregada com sucesso.
+2026-02-09 23:03:55,348 - [INFO] - src.load - Fato Detalhada carregada com sucesso.
+2026-02-09 23:03:55,349 - [INFO] - Main_Pipeline - --- [ETAPA 3] Pipeline API Solides ---
+2026-02-09 23:03:55,350 - [INFO] - src.extract - --- API Solides: Buscando lista de IDs... ---
+2026-02-09 23:03:57,076 - [INFO] - src.extract - Página 1 carregada...
+2026-02-09 23:03:57,703 - [INFO] - src.extract - Página 2 carregada...
+2026-02-09 23:03:57,896 - [INFO] - src.extract - --- API Solides: Iniciando extração PARALELA de 140 colaboradores... ---
+2026-02-09 23:04:01,362 - [INFO] - src.extract - Progresso API: 100/140 concluídos...
+2026-02-09 23:04:01,968 - [INFO] - Main_Pipeline - Transformando dados da API...
+2026-02-09 23:04:01,968 - [INFO] - src.transform - Transformando 140 colaboradores da API...
+2026-02-09 23:04:01,985 - [INFO] - src.transform - Transformação API concluída. 140 colaboradores processados.
+2026-02-09 23:04:01,990 - [INFO] - src.transform - Transformação de Benefícios concluída. 477 registros.
+2026-02-09 23:04:01,991 - [INFO] - Main_Pipeline - Carregando dados da API no Banco...
+2026-02-09 23:04:01,991 - [INFO] - src.load - Carregando staging_colaboradores...
+2026-02-09 23:04:02,074 - [INFO] - src.load - Carregando staging_beneficios_api...
+2026-02-09 23:04:02,168 - [INFO] - src.load - Carga API (Colaboradores e Benefícios) concluída com sucesso.
+2026-02-09 23:04:02,168 - [INFO] - Main_Pipeline - --- [ETAPA 4] Pós-Processamento ---
+2026-02-09 23:04:02,168 - [INFO] - src.load - Iniciando pós-processamento de transferidos...
+2026-02-09 23:04:02,182 - [INFO] - src.load - Status 'Transferido' processado com sucesso.
+2026-02-09 23:04:02,182 - [INFO] - Main_Pipeline - --- [ETAPA FINAL] Limpeza de Arquivos Locais ---
+2026-02-09 23:04:02,192 - [INFO] - Main_Pipeline - Limpeza concluída: 50 arquivos removidos da pasta input.
+2026-02-09 23:04:02,192 - [INFO] - Main_Pipeline - =======================================================
+2026-02-09 23:04:02,192 - [INFO] - Main_Pipeline -    PIPELINE FINALIZADO EM 0m 45s
+2026-02-09 23:04:02,193 - [INFO] - Main_Pipeline - =======================================================

@@ -1,6 +1,6 @@
 # src/utils.py
 import pandas as pd
-import numpy as np
+import os
 
 
 def clean_text_series(series):
@@ -42,3 +42,23 @@ def limpar_valor_moeda(valor_str):
             return float(valor_limpo)
         except (ValueError, TypeError):
             return None
+
+
+def limpar_diretorio_local(diretorio, extensao='.pdf'):
+    """
+    Remove todos os arquivos com a extensão especificada do diretório.
+    Usado para limpar a pasta input após o processamento.
+    """
+    if not os.path.exists(diretorio):
+        return
+
+    arquivos = [f for f in os.listdir(diretorio) if f.lower().endswith(extensao)]
+    count = 0
+    for arquivo in arquivos:
+        try:
+            os.remove(os.path.join(diretorio, arquivo))
+            count += 1
+        except Exception as e:
+            print(f"Erro ao deletar {arquivo}: {e}")
+
+    return count
