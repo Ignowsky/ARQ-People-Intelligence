@@ -348,13 +348,7 @@ def transformar_dependentes_api(dados_brutos):
         # --- DEBUG ESPIÃO ---
         # Vai mostrar no terminal as chaves do primeiro colaborador para conferirmos
     primeiro = dados_brutos[0]
-    logger.info(f"DEBUG JSON KEYS: {list(primeiro.keys())}")
 
-    # Verifica se a chave existe (Case Sensitive)
-    if 'dependents' in primeiro:
-        logger.info(f"DEBUG DEPENDENTS DATA (Exemplo): {primeiro['dependents']}")
-    else:
-        logger.warning("ATENÇÃO: A chave 'dependents' NÃO foi encontrada no JSON da API.")
     # --------------------
 
     lista_dependentes = []

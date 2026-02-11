@@ -265,7 +265,7 @@ def carregar_dados_api(df_staging, df_beneficios, df_dependentes, engine, schema
     NOME_TABELA_BASE = "dim_colaboradores_base"
     NOME_TABELA_STAGING = "staging_colaboradores"
     NOME_STAGING_BEN = "staging_beneficios_api"
-    NOME_FATO_BEN = "fato_beneficios_api"
+    NOME_DIM_BEN = "dim_beneficios"
     NOME_STAGING_DEP = "staging_dependentes_api"
     NOME_DIM_DEP = "dim_dependentes"
 
@@ -473,7 +473,7 @@ def carregar_dados_api(df_staging, df_beneficios, df_dependentes, engine, schema
         -- ETAPA C: FATO BENEFICIOS
         -- ====================================================================
         """ + (f"""
-        CREATE TABLE IF NOT EXISTS "{schema}".{NOME_FATO_BEN} (
+        CREATE TABLE IF NOT EXISTS "{schema}".{NOME_DIM_BEN} (
             beneficio_id SERIAL PRIMARY KEY, colaborador_sk INTEGER,
             tipo_beneficio VARCHAR(100), nome_beneficio VARCHAR(255),
             valor_beneficio NUMERIC(12,2), valor_desconto NUMERIC(12,2),
@@ -481,9 +481,9 @@ def carregar_dados_api(df_staging, df_beneficios, df_dependentes, engine, schema
             data_atualizacao TIMESTAMP DEFAULT current_timestamp,
             FOREIGN KEY (colaborador_sk) REFERENCES "{schema}".{NOME_TABELA_BASE}(colaborador_sk)
         );
-        TRUNCATE TABLE "{schema}".{NOME_FATO_BEN};
+        TRUNCATE TABLE "{schema}".{NOME_DIM_BEN};
 
-        INSERT INTO "{schema}".{NOME_FATO_BEN} (
+        INSERT INTO "{schema}".{NOME_DIM_BEN} (
             colaborador_sk, tipo_beneficio, nome_beneficio, valor_beneficio, valor_desconto, periodicidade, opcao_desconto, aplicado_como
         )
         SELECT 

@@ -49,7 +49,7 @@ def run_pipeline():
     ftp_host = os.getenv("FTP_HOST")
     ftp_user = os.getenv("FTP_USER")
     ftp_pass = os.getenv("FTP_PASS")
-    ftp_dir = os.getenv("FTP_DIR_ENTRADA")
+    ftp_dir = os.getenv("FTP_DIR")
 
     if ftp_host and ftp_user:
         # Baixa os arquivos e remove do servidor
