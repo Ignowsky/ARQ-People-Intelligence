@@ -6,12 +6,13 @@ from dotenv import load_dotenv
 
 # Imports dos módulos
 from src.database import get_db_engine
-from src.extract import processar_pdfs, extrair_api_solides, ingestar_ftp_paralelo  # <--- NOVO IMPORT
+from src.extract import processar_pdfs, extrair_api_solides, ingestar_ftp_paralelo, extrair_profiler_solides # <--- NOVO IMPORT
 from src.transform import (
     transformar_dados_pdf,
     transformar_dados_api,
     transformar_beneficios_api,
-    transformar_dependentes_api
+    transformar_dependentes_api,
+    transformar_profiler_api
 )
 from src.load import (
     garantir_schema_banco,
@@ -23,6 +24,7 @@ from src.load import (
 )
 from src.utils import limpar_diretorio_local  # <--- NOVO IMPORT
 from src.logger import setup_logger
+
 
 # Inicializa o logger principal
 logger = setup_logger("Main_Pipeline")
@@ -116,18 +118,23 @@ def run_pipeline():
 
         dados_brutos_api = extrair_api_solides(token_api)
 
+
         if dados_brutos_api:
+
+            dados_profiler = extrair_profiler_solides(token_api,dados_brutos_api)
             logger.info("Transformando dados da API...")
             # [NOVO] - Transformações dos Dataframes
             df_colaboradores = transformar_dados_api(dados_brutos_api)
             df_beneficios = transformar_beneficios_api(dados_brutos_api)
             df_dependentes = transformar_dependentes_api(dados_brutos_api)
+            df_profiler = transformar_profiler_api(dados_profiler)
 
             # [NOVO] - Carga unificanda de todos os Dataframes
             logger.info("Carregando dados da API no Banco...")
             carregar_dados_api(df_colaboradores,
                                df_beneficios,
-                               df_dependentes, # <---- Novo dataframe adicionado para termos as informações de dependentes
+                               df_dependentes,
+                               df_profiler, # <---- Novo dataframe adicionado para termos as informações de profiler
                                engine,
                                schema)
         else:

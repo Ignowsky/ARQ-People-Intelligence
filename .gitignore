@@ -26,7 +26,11 @@ Folhas Passadas/
 *.xlsx
 *.xls
 *.json
+
 # --- Arquivos do Sistema Operacional e IDEs (Recomendado) ---
 .DS_Store
 .vscode/
 .idea/
+
+# --- Arquivos de inspeção e debug ---
+inspecionar.py

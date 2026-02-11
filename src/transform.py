@@ -345,12 +345,6 @@ def transformar_dependentes_api(dados_brutos):
     if not dados_brutos:
         return pd.DataFrame()
 
-        # --- DEBUG ESPIÃO ---
-        # Vai mostrar no terminal as chaves do primeiro colaborador para conferirmos
-    primeiro = dados_brutos[0]
-
-    # --------------------
-
     lista_dependentes = []
 
     for colab in dados_brutos:
@@ -385,5 +379,52 @@ def transformar_dependentes_api(dados_brutos):
 
     if 'data_nascimento' in df.columns:
         df['data_nascimento'] = df['data_nascimento'].apply(parse_date_seguro)
+
+    return df
+
+
+def transformar_profiler_api(dados_brutos):
+    """
+    Transforma os dados de Profiler (Perfil Comportamental).
+    Campos alvo: id (colaborador), perfil, testDate.
+    """
+    logger.info("Transformando dados de Profiler...")
+
+    if not dados_brutos:
+        return pd.DataFrame()
+
+    lista_profiler = []
+
+    for item in dados_brutos:
+        # Segurança: Se a extração falhou e retornou o item básico sem perfil, pulamos
+        # Ou se o colaborador não tem perfil mapeado na Sólides
+        if 'perfil' not in item:
+            continue
+
+        lista_profiler.append({
+            'colaborador_id_solides': item.get('id'),
+            'perfil_comportamental': item.get('perfil'),
+            'data_teste': item.get('testDate')
+        })
+
+    df = pd.DataFrame(lista_profiler)
+
+    if df.empty:
+        # Retorna DF vazio com as colunas certas para não quebrar o load
+        return pd.DataFrame(columns=['colaborador_id_solides', 'perfil_comportamental', 'data_teste'])
+
+    # --- Tratamentos de Dados ---
+
+    # 1. Datas (usando sua função utilitária parse_date_seguro)
+    if 'data_teste' in df.columns:
+        df['data_teste'] = df['data_teste'].apply(parse_date_seguro)
+
+    # 2. Garantir IDs numéricos
+    if 'colaborador_id_solides' in df.columns:
+        df['colaborador_id_solides'] = df['colaborador_id_solides'].astype('Int64')
+
+    # 3. Limpeza de Texto (opcional, mas recomendada)
+    if 'perfil_comportamental' in df.columns:
+        df['perfil_comportamental'] = clean_text_series(df['perfil_comportamental'])
 
     return df

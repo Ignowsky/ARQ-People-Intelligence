@@ -246,7 +246,7 @@ def carregar_fatos_folha(df_consol, df_detalhe, engine, schema):
 # -----------------------------------------------------------------------------
 # FUNÇÃO UNIFICADA E CORRIGIDA (COLABORADORES + BENEFÍCIOS + DEPENDENTES)
 # -----------------------------------------------------------------------------
-def carregar_dados_api(df_staging, df_beneficios, df_dependentes, engine, schema):
+def carregar_dados_api(df_staging, df_beneficios, df_dependentes, df_profiler, engine, schema):
     """
     Carga UNIFICADA de Colaboradores, Benefícios e Dependentes.
     CORREÇÃO: Não deleta a staging_colaboradores ao final, pois ela é usada no pós-processamento.
@@ -269,6 +269,11 @@ def carregar_dados_api(df_staging, df_beneficios, df_dependentes, engine, schema
     NOME_STAGING_DEP = "staging_dependentes_api"
     NOME_DIM_DEP = "dim_dependentes"
 
+    # [NOVO] - Nomes para o Profiler
+    NOME_STAGING_PROF = "staging_profiler_api"
+    NOME_DIM_PROF = "dim_profiler"
+
+
     try:
         # --- 2. CARGA DAS TABELAS STAGING (Pandas -> Banco) ---
         logger.info(f"Carregando {NOME_TABELA_STAGING}...")
@@ -281,6 +286,11 @@ def carregar_dados_api(df_staging, df_beneficios, df_dependentes, engine, schema
         if not df_dependentes.empty:
             logger.info(f"Carregando {NOME_STAGING_DEP}...")
             df_dependentes.to_sql(NOME_STAGING_DEP, engine, if_exists='replace', index=False, schema=schema)
+
+        # [NOVO] - Staging do Profiler
+        if not df_profiler.empty:
+            logger.info(f"Carregando {NOME_DIM_PROF}...")
+            df_profiler.to_sql(NOME_STAGING_PROF, engine, if_exists='replace', index=False, schema=schema)
 
         # --- 3. EXECUÇÃO DO SQL COMPLEXO ---
         sql = f"""
@@ -495,7 +505,7 @@ def carregar_dados_api(df_staging, df_beneficios, df_dependentes, engine, schema
         JOIN "{schema}".{NOME_TABELA_BASE} base ON stg_colab.cpf = base.cpf;
         """ if not df_beneficios.empty else "") + f"""
 
--- ====================================================================
+        -- ====================================================================
         -- ETAPA D: DIMENSÃO DEPENDENTES (JOIN POR ID SOLIDES)
         -- ====================================================================
         CREATE TABLE IF NOT EXISTS "{schema}".{NOME_DIM_DEP} (
@@ -538,10 +548,51 @@ def carregar_dados_api(df_staging, df_beneficios, df_dependentes, engine, schema
         INNER JOIN "{schema}".{NOME_TABELA_RICA} dc 
              ON stg.colaborador_id_solides = dc.colaborador_id_solides; -- <--- JOIN CORRETO AQUI
         """ if not df_dependentes.empty else "") + f"""
+        
+        -- ====================================================================
+        -- ETAPA E: DIMENSÃO PROFILER (JOIN DIRETO POR ID)
+        -- ====================================================================
+        CREATE TABLE IF NOT EXISTS "{schema}".{NOME_DIM_PROF} (
+            profiler_sk SERIAL PRIMARY KEY,
+            colaborador_sk INTEGER NOT NULL,
+            perfil_comportamental VARCHAR(50),
+            data_teste DATE,
+            data_carga TIMESTAMP DEFAULT current_timestamp,
+            CONSTRAINT fk_colaborador_prof FOREIGN KEY (colaborador_sk) 
+                REFERENCES "{schema}".{NOME_TABELA_BASE} (colaborador_sk)
+        );
+        CREATE INDEX IF NOT EXISTS idx_prof_colab_sk ON "{schema}".{NOME_DIM_PROF} (colaborador_sk);
+
+        """ + (f"""
+        -- 1. DELETE ESCOPADO
+        -- Remove perfis antigos baseando-se no ID da Sólides que está vindo na carga
+        DELETE FROM "{schema}".{NOME_DIM_PROF}
+        WHERE colaborador_sk IN (
+            SELECT dc.colaborador_sk
+            FROM "{schema}".{NOME_STAGING_PROF} stg
+            INNER JOIN "{schema}".{NOME_TABELA_RICA} dc 
+                ON stg.colaborador_id_solides = dc.colaborador_id_solides
+        );
+
+        -- 2. INSERT
+        -- Join DIRETO: Staging (ID) -> Dimensão Rica (ID) -> Pega o SK
+        INSERT INTO "{schema}".{NOME_DIM_PROF} (
+            colaborador_sk, perfil_comportamental, data_teste
+        )
+        SELECT 
+            dc.colaborador_sk,             -- SK que precisamos
+            stg.perfil_comportamental,
+            CAST(stg.data_teste AS DATE)
+        FROM "{schema}".{NOME_STAGING_PROF} stg
+        INNER JOIN "{schema}".{NOME_TABELA_RICA} dc 
+             ON stg.colaborador_id_solides = dc.colaborador_id_solides -- <--- AQUI ESTÁ O VÍNCULO PELO ID
+        WHERE dc.colaborador_sk IS NOT NULL;
+        """ if not df_profiler.empty else "") + f"""
 
         -- LIMPEZA FINAL
         DROP TABLE IF EXISTS "{schema}".{NOME_STAGING_BEN};
         DROP TABLE IF EXISTS "{schema}".{NOME_STAGING_DEP};
+        DROP TABLE IF EXISTS "{schema}".{NOME_STAGING_PROF};
         """
 
         with engine.begin() as conn:
@@ -607,7 +658,8 @@ def limpar_tabelas_staging(engine, schema):
         "stg_folha_detalhe",
         "stg_base_csv_temp",
         "stg_dependentes_temp",
-        "dim_colaboradores_base"
+        "dim_colaboradores_base",
+        "staging_profiler_api"
     ]
 
     try:

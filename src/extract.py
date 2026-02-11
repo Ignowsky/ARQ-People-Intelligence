@@ -509,3 +509,79 @@ def extrair_api_solides(token):
                 logger.info(f"Progresso API: {completed_count}/{total} concluídos...")
 
     return detalhes_finais
+
+
+def _profile_fetch_details(session, base_url, headers, item_basico):
+    """
+    Função Worker: Busca o detalhe do Profiler para um ID específico.
+    Se der erro ou não tiver perfil, retorna None (para não sujar a lista final).
+    """
+    cid = item_basico.get('id')
+    if not cid:
+        return None
+
+    try:
+        # Endpoint específico do Profiler
+        url = f"{base_url}/profiler/{cid}"
+        r = session.get(url, headers=headers, timeout=30)
+
+        if r.status_code == 200:
+            dados = r.json()
+            # Validação extra: Se o JSON vier vazio ou sem a chave 'perfil'
+            if dados and 'perfil' in dados:
+                return dados
+
+        # Se for 404 ou não tiver perfil, retornamos None
+        return None
+
+    except Exception as e:
+        # Em caso de timeout ou erro de rede, apenas logamos (opcional) e seguimos
+        return None
+
+
+def extrair_profiler_solides(token, lista_colaboradores):
+    """
+    Busca o Profiler APENAS para os colaboradores listados (Ativos + Desligados).
+    Realiza uma busca cirúrgica (Lookup) por ID, evitando paginação desnecessária.
+    """
+    if not lista_colaboradores:
+        logger.warning("Lista de colaboradores vazia. Pulando extração de Profiler.")
+        return []
+
+    base_url = "https://app.solides.com/pt-BR/api/v1"
+    headers = {
+        "Authorization": f"Token token={token}",
+        "Accept": "application/json"
+    }
+    session = requests.Session()
+
+    # 1. Filtra apenas quem tem ID válido na lista recebida
+    alvos = [c for c in lista_colaboradores if c.get('id')]
+    total = len(alvos)
+
+    logger.info(f"--- API Solides: Buscando Profiler CIRÚRGICO para {total} colaboradores... ---")
+
+    detalhes_finais = []
+
+    # 2. Execução Paralela (Multithreading)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS_API) as executor:
+        # Mapeia cada colaborador para uma execução da função worker
+        futures_map = {
+            executor.submit(_profile_fetch_details, session, base_url, headers, item): item
+            for item in alvos
+        }
+
+        completed_count = 0
+        for future in concurrent.futures.as_completed(futures_map):
+            resultado = future.result()
+
+            # Só adicionamos na lista se trouxe um perfil válido
+            if resultado:
+                detalhes_finais.append(resultado)
+
+            completed_count += 1
+            if completed_count % 50 == 0:
+                logger.info(f"Progresso Profiler: {completed_count}/{total}...")
+
+    logger.info(f"Extração Profiler concluída. {len(detalhes_finais)} perfis encontrados.")
+    return detalhes_finais
