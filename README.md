@@ -4,7 +4,14 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-12%2B-336791?style=for-the-badge&logo=postgresql)
 ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-Red-red?style=for-the-badge)
 ![Azure DevOps](https://img.shields.io/badge/Azure%20DevOps-0078D7?style=for-the-badge&logo=azure-devops)
+---
+### **Cabeçalho de alterações**
 
+|Nome| Data| Versão|
+|-----|-----|------|
+|João Pedro| 11/02/2026| 1.2|
+
+---
 ## 📋 Visão Geral
 O **ARQ-People Intelligence** é uma solução de Engenharia de Dados end-to-end que centraliza, higieniza e modela o ecossistema de dados de Recursos Humanos. O pipeline atua como um Data Lakehouse especializado, ingerindo dados não-estruturados (PDFs de Folha de Pagamento) e estruturados (APIs de Gestão de Pessoas), consolidando-os em um Data Warehouse modelado para People Analytics.
 
