@@ -1,5 +1,6 @@
 import os
 import ftplib
+import time
 import ssl
 import re
 import concurrent.futures
@@ -13,7 +14,7 @@ from .logger import setup_logger
 logger = setup_logger(__name__)
 
 # Configurações de Concorrência
-MAX_WORKERS_API = 20
+MAX_WORKERS_API = 1
 MAX_WORKERS_FTP = 25
 MAX_WORKERS_PDF = os.cpu_count() or 4
 
@@ -463,13 +464,30 @@ def processar_pdfs(pasta_path):
 def _worker_fetch_details(session, base_url, headers, item_basico):
     cid = item_basico.get('id')
     if not cid: return item_basico
-    try:
-        url = f"{base_url}/colaboradores/{cid}"
-        r_det = session.get(url, headers=headers, timeout=30)
-        if r_det.status_code == 200: return r_det.json()
-        return item_basico
-    except:
-        return item_basico
+
+    url = f"{base_url}/colaboradores/{cid}"
+
+    # Loop de tolerância a falhas (Resiliência de Rede)
+    for tentativa in range(3):
+        try:
+            r_det = session.get(url, headers=headers, timeout=30)
+
+            if r_det.status_code == 200:
+                return r_det.json()
+            elif r_det.status_code == 429:
+                # Interceptou o block por excesso de requisições. O worker aguarda e retenta.
+                time.sleep(15)
+                continue
+            else:
+                # Outros erros (404, etc), interrompe o loop
+                break
+        except Exception as e:
+            time.sleep(15)
+            continue
+
+    # Se exaurir as 3 tentativas, aciona o log de advertência
+    logger.warning(f"Extracao comprometida: Detalhes do ID {cid} inacessiveis. Inserindo payload rudimentar.")
+    return item_basico
 
 
 def extrair_api_solides(token):

@@ -6,7 +6,7 @@ import time
 # Insira seu Token de produção
 API_TOKEN = "a5658a69da14d2ba5b849844abf4fc9988a63ea9f4d2daafb0d1"
 BASE_URL = "https://app.solides.com/pt-BR/api/v1"
-COLABORADOR_ID = 2117091  # ID do colaborador alvo
+COLABORADOR_ID = 2339469 # ID do colaborador alvo
 
 
 def generate_strict_debug():

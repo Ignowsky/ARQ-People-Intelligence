@@ -15,7 +15,7 @@ def garantir_schema_banco(engine, schema_name):
     try:
         with engine.begin() as conn:
             conn.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{schema_name}"'))
-            conn.execute(text(f'CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA "{schema_name}"'))
+            #conn.execute(text(f'CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA "{schema_name}"'))
         # --- LOG ---
         logger.info(f"Schema '{schema_name}' verificado/garantido com sucesso.")
     except Exception as e:
@@ -353,7 +353,6 @@ def carregar_dados_api(df_staging, df_beneficios, df_dependentes, df_profiler, e
             ADD COLUMN IF NOT EXISTS data_expiracao_contrato DATE,
             ADD COLUMN IF NOT EXISTS periodo_experiencia_dias INTEGER,
             ADD COLUMN IF NOT EXISTS valor_rescisao NUMERIC(12, 2),
-            ADD COLUMN IF NOT EXISTS total_beneficios_api NUMERIC(12, 2),
             ADD COLUMN IF NOT EXISTS ativo BOOLEAN,
             ADD COLUMN IF NOT EXISTS etnia VARCHAR(50),
             ADD COLUMN IF NOT EXISTS data_ultima_atualizacao_api DATE,
@@ -398,7 +397,7 @@ def carregar_dados_api(df_staging, df_beneficios, df_dependentes, df_profiler, e
             motivo_demissao, forma_demissao, decisao_demissao,
             salario_api, turno_trabalho, tipo_contrato, data_contrato, escolaridade,
             curso_formacao, nivel_hierarquico, duracao_contrato, data_expiracao_contrato,
-            periodo_experiencia_dias, valor_rescisao, total_beneficios_api, ativo, etnia,
+            periodo_experiencia_dias, valor_rescisao, ativo, etnia,
             data_ultima_atualizacao_api, nome_lider_imediato, lider_id_solides,
             unidade_nome, unidade_id_solides, cargo_nome_api, 
             descricao_cargo, atividades_cargo, cargo_id_solides,
@@ -417,7 +416,7 @@ def carregar_dados_api(df_staging, df_beneficios, df_dependentes, df_profiler, e
             stg.motivo_demissao, stg.forma_demissao, stg.decisao_demissao,
             {to_num('stg.salario_api')}, stg.turno_trabalho, stg.tipo_contrato, stg.data_contrato, stg.escolaridade,
             stg.curso_formacao, stg.nivel_hierarquico, stg.duracao_contrato, stg.data_expiracao_contrato,
-            stg.periodo_experiencia_dias, {to_num('stg.valor_rescisao')}, {to_num('stg.total_beneficios_api')}, stg.ativo, stg.etnia,
+            stg.periodo_experiencia_dias, {to_num('stg.valor_rescisao')}, stg.ativo, stg.etnia,
             stg.data_ultima_atualizacao_api, stg.nome_lider_imediato, stg.lider_id_solides,
             stg.unidade_nome, stg.unidade_id_solides, stg.cargo_nome_api,
             stg.descricao_cargo, stg.atividades_cargo, stg.cargo_id_solides,
@@ -484,25 +483,39 @@ def carregar_dados_api(df_staging, df_beneficios, df_dependentes, df_profiler, e
         -- ====================================================================
         """ + (f"""
         CREATE TABLE IF NOT EXISTS "{schema}".{NOME_DIM_BEN} (
-            beneficio_id SERIAL PRIMARY KEY, colaborador_sk INTEGER,
-            tipo_beneficio VARCHAR(100), nome_beneficio VARCHAR(255),
-            valor_beneficio NUMERIC(12,2), valor_desconto NUMERIC(12,2),
-            periodicidade VARCHAR(50), opcao_desconto VARCHAR(50), aplicado_como VARCHAR(50),
+            beneficio_id SERIAL PRIMARY KEY, 
+            colaborador_sk INTEGER,
+            tipo_beneficio VARCHAR(100), 
+            nome_beneficio VARCHAR(255),
+            valor_beneficio NUMERIC(12,2), 
+            valor_desconto NUMERIC(12,2),
+            periodicidade VARCHAR(50), 
+            opcao_desconto VARCHAR(50), 
+            aplicado_como VARCHAR(50),
             data_atualizacao TIMESTAMP DEFAULT current_timestamp,
             FOREIGN KEY (colaborador_sk) REFERENCES "{schema}".{NOME_TABELA_BASE}(colaborador_sk)
         );
         TRUNCATE TABLE "{schema}".{NOME_DIM_BEN};
-
+        
         INSERT INTO "{schema}".{NOME_DIM_BEN} (
-            colaborador_sk, tipo_beneficio, nome_beneficio, valor_beneficio, valor_desconto, periodicidade, opcao_desconto, aplicado_como
+            colaborador_sk, tipo_beneficio, nome_beneficio, 
+            valor_beneficio, valor_desconto, periodicidade, 
+            opcao_desconto, aplicado_como
         )
         SELECT 
-            base.colaborador_sk, stg.tipo_beneficio, stg.nome_beneficio,
-            {to_num('stg.valor_beneficio')}, {to_num('stg.valor_desconto')}, 
-            stg.periodicidade, stg.opcao_desconto, stg.aplicado_como
+            dc.colaborador_sk, -- Puxando a SK cravada direto da Dimensão Rica
+            stg.tipo_beneficio, 
+            stg.nome_beneficio,
+            CAST(NULLIF(REGEXP_REPLACE(REPLACE(CAST(stg.valor_beneficio AS TEXT), ',', '.'), '[^0-9.]', '', 'g'), '') AS NUMERIC),
+            CAST(NULLIF(REGEXP_REPLACE(REPLACE(CAST(stg.valor_desconto AS TEXT), ',', '.'), '[^0-9.]', '', 'g'), '') AS NUMERIC), 
+            stg.periodicidade, 
+            stg.opcao_desconto, 
+            stg.aplicado_como
         FROM "{schema}".{NOME_STAGING_BEN} stg
-        JOIN "{schema}".{NOME_TABELA_STAGING} stg_colab ON stg.colaborador_id_solides = stg_colab.colaborador_id_solides
-        JOIN "{schema}".{NOME_TABELA_BASE} base ON stg_colab.cpf = base.cpf;
+        -- O PULO DO GATO: Join direto com a Tabela Rica pelo ID da API
+        INNER JOIN "{schema}".{NOME_TABELA_RICA} dc 
+            ON CAST(stg.colaborador_id_solides AS VARCHAR) = CAST(dc.colaborador_id_solides AS VARCHAR)
+        WHERE dc.colaborador_sk IS NOT NULL;
         """ if not df_beneficios.empty else "") + f"""
 
         -- ====================================================================

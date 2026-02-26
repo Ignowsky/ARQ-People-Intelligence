@@ -224,7 +224,16 @@ def transformar_dados_api(lista_dicts_api):
     df = df.rename(columns=rename_map)
 
     # --- Limpeza de Tipos ---
+    # Nomes
+    cols_texto = [
+        'nome_completo', 'nome_pai', 'nome_mae', 'curso_formacao', 'escolaridade',
+        'nome_lider_imediato', 'unidade_nome', 'cargo_nome_api'
+    ]
 
+    for col in cols_texto:
+        if col in df.columns:
+            # remove acentos e converte para maisculo/minusculo padrao
+            df[col] = df[col].str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8')
     # CPF
     if 'cpf' in df.columns:
         df['cpf'] = df['cpf'].apply(clean_digits)
@@ -288,7 +297,6 @@ def transformar_dados_api(lista_dicts_api):
 
 def transformar_beneficios_api(lista_dicts_api):
     if not lista_dicts_api:
-        # --- LOG ---
         logger.warning("Lista API vazia, nenhum benefício a processar.")
         return pd.DataFrame()
 
@@ -299,9 +307,17 @@ def transformar_beneficios_api(lista_dicts_api):
 
         if isinstance(benefits_data, list):
             for ben in benefits_data:
+                # Tenta buscar as variações mais comuns de erro de digitação na API
+                nome_ben = ben.get('benefitName') or ben.get('BenefitName') or ben.get('name')
+
+                # O ESCUDO: Se não achar nome nenhum, printa o BO e pula a linha
+                if not nome_ben:
+                    print(f"⚠️ [ALERTA DE ANOMALIA] ID {colab_id} com benefício zoado. O que a API mandou: {ben}")
+                    continue
+
                 lista_beneficios.append({
                     'colaborador_id_solides': colab_id,
-                    'nome_beneficio': ben.get('benefitName'),
+                    'nome_beneficio': nome_ben,
                     'tipo_beneficio': ben.get('typeBenefit'),
                     'valor_bruto': ben.get('value'),
                     'valor_desconto_bruto': ben.get('valueDiscount'),
@@ -313,21 +329,35 @@ def transformar_beneficios_api(lista_dicts_api):
     df = pd.DataFrame(lista_beneficios)
 
     if df.empty:
-        # --- LOG ---
-        logger.info("Nenhum benefício encontrado nos dados da API.")
+        logger.info("Nenhum benefício útil encontrado nos dados da API.")
         return pd.DataFrame(columns=[
             'colaborador_id_solides', 'nome_beneficio', 'tipo_beneficio',
             'valor_beneficio', 'valor_desconto', 'periodicidade',
             'opcao_desconto', 'aplicado_como'
         ])
 
-    df['valor_beneficio'] = df['valor_bruto'].apply(limpar_valor_moeda)
-    df['valor_desconto'] = df['valor_desconto_bruto'].apply(limpar_valor_moeda)
+    # Conversão blindada direto pra número (evita o bug dos valores milionários)
+    df['valor_beneficio'] = pd.to_numeric(
+        df['valor_bruto'].astype(str)
+        .str.replace('R$', '', regex=False)
+        .str.replace(' ', '', regex=False)
+        .str.replace('.', '', regex=False)
+        .str.replace(',', '.', regex=False),
+        errors='coerce'
+    ).fillna(0.00)
+
+    df['valor_desconto'] = pd.to_numeric(
+        df['valor_desconto_bruto'].astype(str)
+        .str.replace('R$', '', regex=False)
+        .str.replace(' ', '', regex=False)
+        .str.replace('.', '', regex=False)
+        .str.replace(',', '.', regex=False),
+        errors='coerce'
+    ).fillna(0.00)
+
     df.drop(columns=['valor_bruto', 'valor_desconto_bruto'], inplace=True)
 
-    # --- LOG ---
-    logger.info(f"Transformação de Benefícios concluída. {len(df)} registros.")
-
+    logger.info(f"Transformação de Benefícios concluída. {len(df)} registros limpos.")
     return df
 
 def transformar_dependentes_api(dados_brutos):
