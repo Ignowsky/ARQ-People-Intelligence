@@ -473,6 +473,7 @@ def carregar_dados_api(df_staging, df_beneficios, df_dependentes, df_profiler, e
             ctps_numero = EXCLUDED.ctps_numero,
             ctps_serie = EXCLUDED.ctps_serie,
             titulo_eleitor = EXCLUDED.titulo_eleitor,
+            valor_rescisao = EXCLUDED.valor_rescisao,
             banco_nome = EXCLUDED.banco_nome,
             banco_agencia = EXCLUDED.banco_agencia,
             banco_conta = EXCLUDED.banco_conta,

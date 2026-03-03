@@ -317,7 +317,7 @@ def transformar_beneficios_api(lista_dicts_api):
 
                 lista_beneficios.append({
                     'colaborador_id_solides': colab_id,
-                    'nome_beneficio': nome_ben,
+                    'nome_beneficio': nome_ben  ,
                     'tipo_beneficio': ben.get('typeBenefit'),
                     'valor_bruto': ben.get('value'),
                     'valor_desconto_bruto': ben.get('valueDiscount'),
