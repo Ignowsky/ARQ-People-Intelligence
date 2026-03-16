@@ -7,9 +7,10 @@
 ---
 ### **Cabeçalho de alterações**
 
-|Nome| Data| Versão|
-|-----|-----|------|
-|João Pedro| 11/02/2026| 1.2|
+|Nome| Data| Versão| Atualização                                                                  |
+|-----|-----|------|------------------------------------------------------------------------------|
+|João Pedro| 11/02/2026| 1.2|                                                                              |
+|João Pedro| 16/03/2026| 1.2| Ajuste da lógica de SCD, onde as SKs estavam mudando após alguma alteração.  |
 
 ---
 ## 📋 Visão Geral
