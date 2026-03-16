@@ -63,7 +63,7 @@ MAPEAMENTO_ORIGINAL = {
     '9751': 'D_9751_Desc_Emprestimo_Consginado', '9752': 'D_9752_Provisao_Desc_Emprestimo_Consignado', '557': 'P_557_VT_Mes_Atual',
     '1080':  'D_1080_Desc_Emprestimo_Consignado', '1077': 'D_1077_Desc_Emprestimo_Consignado', '401': 'P_401_DSR_Saldo_Banco_Horas', '1108': 'D_1108_Desconto_Cursos',
     '1082': 'D_1082_Desc_Emprestimo_Consignado', '342': 'D_342_Desc_Plano_Medico_Ret', '299': 'P_299_Saldo_Salario', '361': 'D_361_Adiantamento_Salarial',
-    '1055': 'P_1055_Premio'
+    '1055': 'P_1055_Premio', '1070': 'D_1070_Desc_Emprestimo_Consignado', '329': 'P_329_Reembolso_VT', '709': 'D_709_Desc_Plano_Odonto_Anterior'
 }
 proventos_map = {k: v for k, v in MAPEAMENTO_ORIGINAL.items() if v.startswith('P_')}
 descontos_map = {k: v for k, v in MAPEAMENTO_ORIGINAL.items() if v.startswith('D_')}

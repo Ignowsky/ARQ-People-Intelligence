@@ -672,7 +672,7 @@ def limpar_tabelas_staging(engine, schema):
         "stg_folha_detalhe",
         "stg_base_csv_temp",
         "stg_dependentes_temp",
-        "dim_colaboradores_base",
+       # "dim_colaboradores_base",
         "staging_profiler_api"
     ]
 
