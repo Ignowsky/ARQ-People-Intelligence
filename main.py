@@ -34,7 +34,7 @@ def run_pipeline():
     start_time = time.time()
 
     logger.info("=======================================================")
-    logger.info("   INICIANDO PIPELINE DE DADOS - ARQ PEOPLE INTEL")
+    logger.info("   INICIANDO PIPELINE DE DADOS - ARQ PEOPLE INTELIGENCE")
     logger.info("=======================================================")
 
     load_dotenv()
@@ -112,7 +112,10 @@ def run_pipeline():
     # =========================================================================
     # 4. PIPELINE API SOLIDES (SEU CÓDIGO ORIGINAL)
     # =========================================================================
+    # Token da API sólides, de ambas as empresas para carregar os dados da ARQDIGITAL descomentar a linha onde o .env
+    # Puxa a váriavel SOLIDES_API_TOKEN, para puxar da ARQCONAM manter a váriavel SOLIDES_API_TOKEN_CONAM
     token_api = os.getenv("SOLIDES_API_TOKEN")
+    #token_api = os.getenv("SOLIDES_API_TOKEN_CONAM")
     if token_api:
         logger.info("--- [ETAPA 3] Pipeline API Solides ---")
 

@@ -20,8 +20,12 @@ def get_db_engine():
     password = os.getenv("DB_PASS")
     host = os.getenv("DB_HOST")
     port = os.getenv("DB_PORT")
+    # Basta descomentar as linhas abaixo para fazer a carga no banco da ARQDIGITAL
     dbname = os.getenv("DB_NAME")
     schema = os.getenv("DB_SCHEMA")
+    # Conexões multiplas, basta descomentar para trocar de banco de dados
+    #dbname = os.getenv("DB_NAME_CONAM")
+    #schema = os.getenv("DB_SCHEMA_CONAM")
     
     # Validação para não tentar conectar com parâmetros incompletos
     if not all([user, password, host, port, dbname, schema]):

@@ -350,7 +350,7 @@ def carregar_dados_api(df_staging, df_beneficios, df_dependentes, df_profiler, e
             ADD COLUMN IF NOT EXISTS curso_formacao VARCHAR(255),
             ADD COLUMN IF NOT EXISTS nivel_hierarquico VARCHAR(100),
             ADD COLUMN IF NOT EXISTS duracao_contrato VARCHAR(100),
-            ADD COLUMN IF NOT EXISTS data_expiracao_contrato DATE,
+            ADD COLUMN IF NOT EXISTS data_expiracao_contrato TEXT,
             ADD COLUMN IF NOT EXISTS periodo_experiencia_dias INTEGER,
             ADD COLUMN IF NOT EXISTS valor_rescisao NUMERIC(12, 2),
             ADD COLUMN IF NOT EXISTS ativo BOOLEAN,
