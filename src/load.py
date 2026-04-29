@@ -130,7 +130,7 @@ def carregar_fatos_folha(df_consol, df_detalhe, engine, schema):
             SELECT DISTINCT ON (cpf)
                 nome_colaborador, cpf,
                 data_admissao_csv,  -- Inserção direta (Python já tratou)
-                data_demissao_csv, 
+                data_demissao_csv,
                 situacao_csv, departamento_csv, cargo_csv
             FROM "{schema}"."stg_base_csv_temp"
             WHERE cpf IS NOT NULL AND cpf != 'N/A'

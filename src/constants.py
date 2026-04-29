@@ -63,7 +63,10 @@ MAPEAMENTO_ORIGINAL = {
     '9751': 'D_9751_Desc_Emprestimo_Consginado', '9752': 'D_9752_Provisao_Desc_Emprestimo_Consignado', '557': 'P_557_VT_Mes_Atual',
     '1080':  'D_1080_Desc_Emprestimo_Consignado', '1077': 'D_1077_Desc_Emprestimo_Consignado', '401': 'P_401_DSR_Saldo_Banco_Horas', '1108': 'D_1108_Desconto_Cursos',
     '1082': 'D_1082_Desc_Emprestimo_Consignado', '342': 'D_342_Desc_Plano_Medico_Ret', '299': 'P_299_Saldo_Salario', '361': 'D_361_Adiantamento_Salarial',
-    '1055': 'P_1055_Premio', '1070': 'D_1070_Desc_Emprestimo_Consignado', '329': 'P_329_Reembolso_VT', '709': 'D_709_Desc_Plano_Odonto_Anterior'
+    '1055': 'P_1055_Premio', '1070': 'D_1070_Desc_Emprestimo_Consignado', '329': 'P_329_Reembolso_VT', '709': 'D_709_Desc_Plano_Odonto_Anterior',
+    '9522': 'P_9522_Dias_Afast_Doenca_Igual_Inf_15', '8785': 'P_8785_Dias_Afast_INSS_(P/Doenca)', '8801': 'D_8801_Desc_Dias_Afast_Doenca', '830': 'P_830_Indenizacao_Adicional',
+    '563': 'D_563_Dif_Plano_Odonto', '8382': 'P_8382_Dif_Salario_Maternidade', '8134': 'D_8134_Desc_Dif_13', '8923': 'D_8923_Dias_Suspesos', '1018': 'D_1018_Desc_Vale_Transporte',
+    '8198': 'P_8198_Dif_Media_Valor_Abono_Ferias'
 }
 proventos_map = {k: v for k, v in MAPEAMENTO_ORIGINAL.items() if v.startswith('P_')}
 descontos_map = {k: v for k, v in MAPEAMENTO_ORIGINAL.items() if v.startswith('D_')}

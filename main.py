@@ -114,8 +114,10 @@ def run_pipeline():
     # =========================================================================
     # Token da API sólides, de ambas as empresas para carregar os dados da ARQDIGITAL descomentar a linha onde o .env
     # Puxa a váriavel SOLIDES_API_TOKEN, para puxar da ARQCONAM manter a váriavel SOLIDES_API_TOKEN_CONAM
-    token_api = os.getenv("SOLIDES_API_TOKEN")
-    #token_api = os.getenv("SOLIDES_API_TOKEN_CONAM")
+
+    #token_api = os.getenv("SOLIDES_API_TOKEN") # Quando for atualizar o DW da arqdigital descomentar essa linha
+    token_api = os.getenv("SOLIDES_API_TOKEN_CONAM") # Quando for atualizar o DW da arqconam descomentar essa linha
+
     if token_api:
         logger.info("--- [ETAPA 3] Pipeline API Solides ---")
 
