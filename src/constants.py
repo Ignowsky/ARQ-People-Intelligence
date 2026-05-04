@@ -66,7 +66,7 @@ MAPEAMENTO_ORIGINAL = {
     '1055': 'P_1055_Premio', '1070': 'D_1070_Desc_Emprestimo_Consignado', '329': 'P_329_Reembolso_VT', '709': 'D_709_Desc_Plano_Odonto_Anterior',
     '9522': 'P_9522_Dias_Afast_Doenca_Igual_Inf_15', '8785': 'P_8785_Dias_Afast_INSS_(P/Doenca)', '8801': 'D_8801_Desc_Dias_Afast_Doenca', '830': 'P_830_Indenizacao_Adicional',
     '563': 'D_563_Dif_Plano_Odonto', '8382': 'P_8382_Dif_Salario_Maternidade', '8134': 'D_8134_Desc_Dif_13', '8923': 'D_8923_Dias_Suspesos', '1018': 'D_1018_Desc_Vale_Transporte',
-    '8198': 'P_8198_Dif_Media_Valor_Abono_Ferias'
+    '8198': 'P_8198_Dif_Media_Valor_Abono_Ferias', '1064': 'D_1064_Desc_VA-VT_Nao_Utilizado', '926': 'P_926_Trienio_Sindpd'
 }
 proventos_map = {k: v for k, v in MAPEAMENTO_ORIGINAL.items() if v.startswith('P_')}
 descontos_map = {k: v for k, v in MAPEAMENTO_ORIGINAL.items() if v.startswith('D_')}

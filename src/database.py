@@ -22,10 +22,10 @@ def get_db_engine():
     port = os.getenv("DB_PORT")
     # Basta descomentar as linhas abaixo para fazer a carga no banco da ARQDIGITAL
     dbname = os.getenv("DB_NAME")
-    #schema = os.getenv("DB_SCHEMA") # Quando for atualizar o DW da arqdigital descomentar essa linha
+    schema = os.getenv("DB_SCHEMA") # Quando for atualizar o DW da arqdigital descomentar essa linha
 
     # Conexões multiplas, basta descomentar para trocar de banco de dados
-    schema = os.getenv("DB_SCHEMA_CONAM") # Quando for atualizar o DW da arqconam descomentar essa linha
+    #schema = os.getenv("DB_SCHEMA_CONAM") # Quando for atualizar o DW da arqconam descomentar essa linha
     
     # Validação para não tentar conectar com parâmetros incompletos
     if not all([user, password, host, port, dbname, schema]):

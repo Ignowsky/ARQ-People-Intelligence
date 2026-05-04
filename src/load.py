@@ -1,12 +1,20 @@
 import pandas as pd
 from sqlalchemy import text
 from .constants import SCHEMA_TOTAIS, SCHEMA_RUBRICAS
+import os
+from dotenv import load_dotenv
+
+# Carregando as variáveis de ambiente do arquivo .env assim que o módulo é importado.
+load_dotenv()
 
 # --- NOVO: Import do Logger ---
 from .logger import setup_logger
 
 logger = setup_logger(__name__)
 
+cpf_1 = os.getenv("CPF1", "000").strip()
+cpf_2 = os.getenv("CPF2", "000").strip()
+cpf_3 = os.getenv("CPF3", "000").strip()
 
 def garantir_schema_banco(engine, schema_name):
     """
@@ -173,6 +181,7 @@ def carregar_fatos_folha(df_consol, df_detalhe, engine, schema):
                         total_descontos NUMERIC(12, 2), valor_liquido NUMERIC(12, 2),
                         base_inss NUMERIC(12, 2), base_fgts NUMERIC(12, 2),
                         valor_fgts NUMERIC(12, 2), base_irrf NUMERIC(12, 2),
+                        flag_elegivel BOOLEAN,
                         FOREIGN KEY (colaborador_sk) REFERENCES "{schema}"."dim_colaboradores_base"(colaborador_sk)
                     );
 
@@ -182,7 +191,7 @@ def carregar_fatos_folha(df_consol, df_detalhe, engine, schema):
                         colaborador_sk, competencia, nome_funcionario_csv, centro_de_custo, 
                         cargo_nome_csv, cpf_csv, situacao_csv, tipo_calculo_csv,
                         salario_contratual, total_proventos, total_descontos, valor_liquido,
-                        base_inss, base_fgts, valor_fgts, base_irrf
+                        base_inss, base_fgts, valor_fgts, base_irrf, flag_elegivel
                     )
                     SELECT
                         COALESCE(base.colaborador_sk, 0), 
@@ -190,7 +199,11 @@ def carregar_fatos_folha(df_consol, df_detalhe, engine, schema):
                         stg.nome_funcionario, stg.departamento,
                         stg.cargo, stg.cpf, stg.situacao, stg.tipo_calculo,
                         stg.salario_contratual, stg.total_proventos, stg.total_descontos, stg.valor_liquido,
-                        stg.base_inss, stg.base_fgts, stg.valor_fgts, stg.base_irrf
+                        stg.base_inss, stg.base_fgts, stg.valor_fgts, stg.base_irrf,
+                        -- Nova regra:
+                        CASE WHEN stg.cpf IN ('{cpf_1}', '{cpf_2}', '{cpf_3}')  THEN FALSE
+                        ELSE TRUE
+                        END
                     FROM "{schema}"."stg_folha_consol" stg
                     LEFT JOIN "{schema}"."dim_colaboradores_base" base ON stg.cpf = base.cpf;
                 """
@@ -217,6 +230,7 @@ def carregar_fatos_folha(df_consol, df_detalhe, engine, schema):
                         situacao_csv VARCHAR(100), tipo_calculo_csv VARCHAR(100),
                         codigo_rubrica VARCHAR(100), nome_rubrica VARCHAR(255), tipo_rubrica VARCHAR(100),
                         valor_rubrica NUMERIC(12, 2),
+                        flag_elegivel BOOLEAN,
                         FOREIGN KEY (colaborador_sk) REFERENCES "{schema}"."dim_colaboradores_base"(colaborador_sk)
                     );
 
@@ -224,14 +238,17 @@ def carregar_fatos_folha(df_consol, df_detalhe, engine, schema):
 
                     INSERT INTO "{schema}"."fato_folha_detalhada" (
                         colaborador_sk, competencia, nome_funcionario_csv, centro_de_custo, cpf_csv,
-                        situacao_csv, tipo_calculo_csv, codigo_rubrica, nome_rubrica, tipo_rubrica, valor_rubrica
+                        situacao_csv, tipo_calculo_csv, codigo_rubrica, nome_rubrica, tipo_rubrica, valor_rubrica, flag_elegivel
                     )
                     SELECT
                         COALESCE(base.colaborador_sk, 0), 
                         stg.competencia, 
                         stg.nome_funcionario, stg.departamento, stg.cpf,
                         stg.situacao, stg.tipo_calculo, stg.codigo_rubrica, stg.nome_rubrica, stg.tipo_rubrica, 
-                        stg.valor_rubrica
+                        stg.valor_rubrica,
+                        -- Nova Regra:
+                        CASE WHEN stg.cpf IN ('{cpf_1}', '{cpf_2}', '{cpf_3}') THEN FALSE ELSE TRUE
+                        END
                     FROM "{schema}"."stg_folha_detalhe" stg
                     LEFT JOIN "{schema}"."dim_colaboradores_base" base ON stg.cpf = base.cpf;
                 """
@@ -386,7 +403,8 @@ def carregar_dados_api(df_staging, df_beneficios, df_dependentes, df_profiler, e
             ADD COLUMN IF NOT EXISTS pis VARCHAR(50),
             ADD COLUMN IF NOT EXISTS banco_nome VARCHAR(100),
             ADD COLUMN IF NOT EXISTS banco_agencia VARCHAR(50),
-            ADD COLUMN IF NOT EXISTS banco_conta VARCHAR(50);
+            ADD COLUMN IF NOT EXISTS banco_conta VARCHAR(50),
+            ADD COLUMN IF NOT EXISTS flag_elegivel BOOLEAN;
 
         -- UPSERT MASSIVO
         INSERT INTO "{schema}".{NOME_TABELA_RICA} (
@@ -406,7 +424,7 @@ def carregar_dados_api(df_staging, df_beneficios, df_dependentes, df_profiler, e
             celular, telefone_emergencia, rg, data_emissao_rg, orgao_emissor_rg,
             titulo_eleitor, zona_eleitoral, secao_eleitoral, ctps_numero, ctps_serie,
             pis, banco_nome, banco_agencia, banco_conta,
-            data_ultima_atualizacao
+            data_ultima_atualizacao, flag_elegivel
         )
         SELECT
             base.colaborador_sk, stg.colaborador_id_solides, stg.cpf, stg.nome_completo, stg.matricula,
@@ -425,7 +443,9 @@ def carregar_dados_api(df_staging, df_beneficios, df_dependentes, df_profiler, e
             stg.celular, stg.telefone_emergencia, stg.rg, stg.data_emissao_rg, stg.orgao_emissor_rg,
             stg.titulo_eleitor, stg.zona_eleitoral, stg.secao_eleitoral, stg.ctps_numero, stg.ctps_serie,
             stg.pis, stg.banco_nome, stg.banco_agencia, stg.banco_conta,
-            current_timestamp
+            current_timestamp,
+            -- Nova Regra:
+            CASE WHEN stg.cpf in ('{cpf_1}', '{cpf_2}', '{cpf_3}') THEN FALSE ELSE TRUE END
         FROM "{schema}".{NOME_TABELA_STAGING} AS stg
         JOIN "{schema}".{NOME_TABELA_BASE} AS base ON stg.cpf = base.cpf
         WHERE stg.colaborador_id_solides IS NOT NULL
@@ -477,7 +497,8 @@ def carregar_dados_api(df_staging, df_beneficios, df_dependentes, df_profiler, e
             banco_nome = EXCLUDED.banco_nome,
             banco_agencia = EXCLUDED.banco_agencia,
             banco_conta = EXCLUDED.banco_conta,
-            data_ultima_atualizacao = current_timestamp;
+            data_ultima_atualizacao = current_timestamp,
+            flag_elegivel = EXCLUDED.flag_elegivel;
 
         -- ====================================================================
         -- ETAPA C: FATO BENEFICIOS
